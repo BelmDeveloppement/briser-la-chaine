@@ -1,0 +1,373 @@
+{
+ "stations": {
+  "1": {
+   "nom": "Reconnaissance",
+   "en": "Reconnaissance",
+   "id": "TA0043"
+  },
+  "2": {
+   "nom": "Préparation",
+   "en": "Resource Development",
+   "id": "TA0042"
+  },
+  "3": {
+   "nom": "Accès initial",
+   "en": "Initial Access",
+   "id": "TA0001"
+  },
+  "4": {
+   "nom": "Exécution",
+   "en": "Execution",
+   "id": "TA0002"
+  },
+  "5": {
+   "nom": "Persistance",
+   "en": "Persistence",
+   "id": "TA0003"
+  },
+  "6": {
+   "nom": "Élévation de privilèges",
+   "en": "Privilege Escalation",
+   "id": "TA0004"
+  },
+  "7": {
+   "nom": "Discrétion",
+   "en": "Stealth",
+   "id": "TA0005"
+  },
+  "8": {
+   "nom": "Défenses affaiblies",
+   "en": "Defense Impairment",
+   "id": "TA0112"
+  },
+  "9": {
+   "nom": "Accès aux identifiants",
+   "en": "Credential Access",
+   "id": "TA0006"
+  },
+  "10": {
+   "nom": "Découverte",
+   "en": "Discovery",
+   "id": "TA0007"
+  },
+  "11": {
+   "nom": "Mouvement latéral",
+   "en": "Lateral Movement",
+   "id": "TA0008"
+  },
+  "12": {
+   "nom": "Collecte",
+   "en": "Collection",
+   "id": "TA0009"
+  },
+  "13": {
+   "nom": "Commande et contrôle",
+   "en": "Command and Control",
+   "id": "TA0011"
+  },
+  "14": {
+   "nom": "Exfiltration",
+   "en": "Exfiltration",
+   "id": "TA0010"
+  },
+  "15": {
+   "nom": "Impact",
+   "en": "Impact",
+   "id": "TA0040"
+  }
+ },
+ "scenarios": [
+  {
+   "id": 1,
+   "nom": "Le dimanche de TransLor",
+   "sous": "Rançongiciel via un compte d’ancien salarié (EXO 3)",
+   "niveau": 1,
+   "constats": [
+    {
+     "tech": "T1078",
+     "st": 3,
+     "txt": "Samedi 23 h 47 : le VPN accepte la connexion du compte de Paul M., ancien technicien parti il y a 4 mois. Le compte n’avait jamais été désactivé.",
+     "exp": "L’attaquant entre avec un compte valide oublié : Accès initial (T1078). Piste : désactivation des comptes au départ."
+    },
+    {
+     "tech": "T1133",
+     "st": 5,
+     "txt": "Le même compte est utilisé chaque nuit depuis la même adresse étrangère : le VPN sert de porte d’entrée durable, sans aucun logiciel malveillant.",
+     "exp": "Un service d’accès distant exposé permet de revenir quand on veut : Persistance (T1133)."
+    },
+    {
+     "tech": "T1087.002",
+     "st": 10,
+     "txt": "Dimanche 0 h 20 : une série de requêtes liste les comptes et groupes de l’annuaire, dont celui des administrateurs du domaine.",
+     "exp": "L’attaquant cherche qui est qui avant d’aller plus loin : Découverte (T1087.002)."
+    },
+    {
+     "tech": "T1003.001",
+     "st": 9,
+     "txt": "À 0 h 52, un outil lit la mémoire du processus LSASS sur un serveur de fichiers. L’EDR remonte une alerte de gravité moyenne.",
+     "exp": "Le vol des mots de passe en mémoire relève d’Accès aux identifiants (T1003.001)."
+    },
+    {
+     "tech": "T1059.001",
+     "st": 4,
+     "txt": "Des scripts PowerShell encodés en base64 se lancent sur plusieurs postes depuis la même session.",
+     "exp": "L’attaquant exécute des commandes : Exécution (T1059.001)."
+    },
+    {
+     "tech": "T1021.001",
+     "st": 11,
+     "txt": "Une session Bureau à distance s’ouvre depuis le serveur de fichiers vers le contrôleur de domaine, avec le compte d’un administrateur.",
+     "exp": "Passer d’une machine à l’autre avec des identifiants volés : Mouvement latéral (T1021.001)."
+    },
+    {
+     "tech": "T1021.002",
+     "st": 11,
+     "txt": "Un exécutable est copié via les partages d’administration (C$) sur 30 serveurs en 10 minutes.",
+     "exp": "Même tactique, autre technique : Mouvement latéral (T1021.002). Il prépare le déploiement."
+    },
+    {
+     "tech": "T1490",
+     "st": 15,
+     "txt": "Les sauvegardes en ligne et les copies instantanées Windows sont supprimées à 3 h 05. La dernière sauvegarde hors ligne date de 9 jours.",
+     "exp": "Empêcher la restauration est un Impact (T1490)."
+    },
+    {
+     "tech": "T1486",
+     "st": 15,
+     "txt": "À 3 h 30, les fichiers de 40 serveurs portent l’extension .locked et une note de rançon s’affiche.",
+     "exp": "Chiffrement par rançongiciel : Impact (T1486)."
+    },
+    {
+     "tech": "T1567.002",
+     "st": 14,
+     "txt": "Avant le chiffrement, 120 Go ont été envoyés vers un service de stockage cloud. L’attaquant menace de publier les données.",
+     "exp": "Double extorsion : Exfiltration (T1567.002)."
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "nom": "Exchange en péril",
+   "sous": "Campagne Hafnium transposée (EXO 5)",
+   "niveau": 3,
+   "constats": [
+    {
+     "tech": "T1190",
+     "st": 3,
+     "txt": "Le serveur de messagerie Exchange exposé sur Internet reçoit des requêtes inhabituelles vers une page d’autodécouverte, puis une réponse anormale.",
+     "exp": "Exploitation d’une application exposée : Accès initial (T1190). Piste : correctif et segmentation."
+    },
+    {
+     "tech": "T1505.003",
+     "st": 5,
+     "txt": "Un fichier .aspx inconnu apparaît dans un répertoire du serveur web. Il répond à des commandes envoyées par des requêtes HTTP.",
+     "exp": "Un web shell garantit le retour de l’attaquant : Persistance (T1505.003)."
+    },
+    {
+     "tech": "T1059.001",
+     "st": 4,
+     "txt": "Le processus du serveur web lance PowerShell, ce qui est anormal pour lui.",
+     "exp": "Exécution (T1059.001) : le web shell exécute des commandes."
+    },
+    {
+     "tech": "T1003.001",
+     "st": 9,
+     "txt": "Une copie de la mémoire de LSASS est créée sur le serveur de messagerie, puis envoyée vers le web shell.",
+     "exp": "Accès aux identifiants (T1003.001)."
+    },
+    {
+     "tech": "T1003.003",
+     "st": 9,
+     "txt": "Une copie de la base NTDS.dit est réalisée sur un contrôleur de domaine à l’aide d’un utilitaire d’administration.",
+     "exp": "Même tactique, autre technique : Accès aux identifiants (T1003.003). Toutes les empreintes de l’entreprise sont exposées."
+    },
+    {
+     "tech": "T1560.001",
+     "st": 12,
+     "txt": "Des archives .zip protégées par mot de passe sont créées dans un répertoire temporaire, avec des boîtes aux lettres de la direction.",
+     "exp": "Préparer les données avant de les sortir : Collecte (T1560.001)."
+    },
+    {
+     "tech": "T1114.002",
+     "st": 12,
+     "txt": "Des requêtes d’export de boîtes aux lettres sont exécutées depuis le serveur, pour 14 comptes dont ceux du PDG et du DAF.",
+     "exp": "Voler des courriels : Collecte (T1114.002)."
+    },
+    {
+     "tech": "T1567.002",
+     "st": 14,
+     "txt": "Les archives sont envoyées vers un service de partage de fichiers public, en dehors des heures ouvrées.",
+     "exp": "Exfiltration (T1567.002) : volume élevé vers un service cloud."
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "nom": "Le faux fournisseur",
+   "sous": "Fraude au RIB par hameçonnage (EXO 6)",
+   "niveau": 2,
+   "constats": [
+    {
+     "tech": "T1583.001",
+     "st": 2,
+     "txt": "Un nom de domaine qui ressemble à celui d’un fournisseur de TransLor (une lettre changée) a été enregistré hier. TransLor ne le sait pas encore.",
+     "exp": "L’attaquant prépare ses outils : Préparation (T1583.001). Piste : surveillance des domaines similaires."
+    },
+    {
+     "tech": "T1589.002",
+     "st": 1,
+     "txt": "Quelqu’un a collecté sur Internet les adresses e-mail du service comptabilité et le nom du DAF.",
+     "exp": "Collecte d’informations sur la cible : Reconnaissance (T1589.002)."
+    },
+    {
+     "tech": "T1566.002",
+     "st": 3,
+     "txt": "Un comptable reçoit un courriel de « son fournisseur » avec un lien vers un faux portail pour mettre à jour ses coordonnées.",
+     "exp": "Hameçonnage par lien : Accès initial (T1566.002)."
+    },
+    {
+     "tech": "T1078",
+     "st": 3,
+     "txt": "Les identifiants saisis sur le faux portail sont utilisés dans l’heure pour se connecter à la messagerie en ligne depuis un autre pays.",
+     "exp": "Accès initial (T1078) : compte valide obtenu par hameçonnage."
+    },
+    {
+     "tech": "T1114.002",
+     "st": 12,
+     "txt": "L’attaquant lit pendant 3 jours les échanges avec le fournisseur et repère le calendrier des paiements.",
+     "exp": "Collecte (T1114.002) : lecture de courriels distante."
+    },
+    {
+     "tech": "T1564.008",
+     "st": 7,
+     "txt": "Une règle de messagerie envoie dans un dossier caché tous les courriels contenant « RIB » ou « virement ».",
+     "exp": "Cacher ses traces : Discrétion (T1564.008)."
+    },
+    {
+     "tech": "T1565.001",
+     "st": 15,
+     "txt": "Dans la pièce jointe d’une vraie facture, le RIB a été remplacé par un autre sans que rien ne change visuellement.",
+     "exp": "Altération de données : Impact (T1565.001)."
+    },
+    {
+     "tech": "T1657",
+     "st": 15,
+     "txt": "Un virement de 187 000 € part vers un compte inconnu. Le fournisseur n’en sait rien.",
+     "exp": "Vol financier : Impact (T1657). Piste : double validation par appel au numéro connu."
+    }
+   ]
+  },
+  {
+   "id": 4,
+   "nom": "Le portail percé",
+   "sous": "Intrusion par le portail de suivi des colis",
+   "niveau": 2,
+   "constats": [
+    {
+     "tech": "T1595.002",
+     "st": 1,
+     "txt": "Depuis 2 jours, le portail de suivi des colis reçoit des milliers de requêtes qui testent des failles connues, venant de la même plage d’adresses.",
+     "exp": "Reconnaissance (T1595.002) : scan de vulnérabilités."
+    },
+    {
+     "tech": "T1190",
+     "st": 3,
+     "txt": "Une requête inhabituelle sur le portail déclenche une erreur, puis un accès à une page d’administration jamais exposée.",
+     "exp": "Exploitation d’une application exposée : Accès initial (T1190)."
+    },
+    {
+     "tech": "T1505.003",
+     "st": 5,
+     "txt": "Un nouveau fichier de script apparaît dans le dossier d’envoi de documents du portail.",
+     "exp": "Web shell : Persistance (T1505.003)."
+    },
+    {
+     "tech": "T1071.001",
+     "st": 13,
+     "txt": "Le serveur du portail contacte un site inconnu toutes les 60 secondes avec de petites requêtes HTTPS régulières.",
+     "exp": "Communication régulière vers l’attaquant : Commande et contrôle (T1071.001)."
+    },
+    {
+     "tech": "T1083",
+     "st": 10,
+     "txt": "Le compte du portail parcourt les répertoires et liste les fichiers de plusieurs partages réseau.",
+     "exp": "Découverte (T1083)."
+    },
+    {
+     "tech": "T1552.001",
+     "st": 9,
+     "txt": "Un fichier de configuration lu par l’attaquant contient en clair le mot de passe de la base de données clients.",
+     "exp": "Identifiants dans des fichiers : Accès aux identifiants (T1552.001)."
+    },
+    {
+     "tech": "T1078",
+     "st": 11,
+     "txt": "Avec ce mot de passe, l’attaquant se connecte à un second serveur d’application qui n’était pas exposé.",
+     "exp": "Il se déplace avec un compte valide : Mouvement latéral (T1078). Piste : mots de passe en coffre et comptes de service cloisonnés."
+    },
+    {
+     "tech": "T1005",
+     "st": 12,
+     "txt": "La base clients (300 000 lignes) est copiée dans un fichier temporaire sur le serveur.",
+     "exp": "Collecte (T1005) : données du système local."
+    },
+    {
+     "tech": "T1041",
+     "st": 14,
+     "txt": "Le fichier temporaire est envoyé via le même canal HTTPS que les échanges réguliers.",
+     "exp": "Exfiltration par le canal C2 (T1041)."
+    }
+   ]
+  },
+  {
+   "id": 5,
+   "nom": "L’ancien collègue",
+   "sous": "Menace interne après un départ mal préparé",
+   "niveau": 1,
+   "constats": [
+    {
+     "tech": "T1078",
+     "st": 3,
+     "txt": "Paul a quitté l’entreprise vendredi dans de mauvais termes. Dimanche, son compte, jamais désactivé, se connecte à la messagerie et au VPN.",
+     "exp": "Compte valide non désactivé : Accès initial (T1078)."
+    },
+    {
+     "tech": "T1087.002",
+     "st": 10,
+     "txt": "Le compte consulte la liste des comptes à privilèges, ce qu’il n’avait jamais fait.",
+     "exp": "Découverte (T1087.002)."
+    },
+    {
+     "tech": "T1098",
+     "st": 5,
+     "txt": "Il ajoute son compte à un groupe d’administration et crée un compte de secours.",
+     "exp": "Manipulation de compte : Persistance (T1098)."
+    },
+    {
+     "tech": "T1213",
+     "st": 12,
+     "txt": "Il télécharge en masse des pages d’un espace de documentation interne, dont des procédures et des contrats.",
+     "exp": "Collecte (T1213) : données de dépôts d’information."
+    },
+    {
+     "tech": "T1560.001",
+     "st": 12,
+     "txt": "Les documents sont compressés dans une archive protégée par mot de passe.",
+     "exp": "Préparer les données : Collecte (T1560.001)."
+    },
+    {
+     "tech": "T1567.002",
+     "st": 14,
+     "txt": "L’archive est envoyée vers un stockage cloud personnel, à 22 h.",
+     "exp": "Exfiltration (T1567.002)."
+    },
+    {
+     "tech": "T1485",
+     "st": 15,
+     "txt": "Avant de partir, il efface plusieurs dossiers de projets sur le partage commun.",
+     "exp": "Destruction de données : Impact (T1485)."
+    }
+   ]
+  }
+ ]
+}

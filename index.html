@@ -1,0 +1,176 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Briser la chaîne</title>
+<style>
+:root{--bg:#0B1730;--p:#13264A;--l:#6E94DA;--t:#EAF1FF;--m:#9DB4E0;--g:#4BE08B;--r:#FF5470;--y:#FFC857;--z1:#2EC4B6;--z2:#3A9BFF;--z3:#FF5470}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:16px/1.45 system-ui,sans-serif;min-height:100vh}
+.w{max-width:1100px;margin:0 auto;padding:16px}h1{margin:0;font-size:28px}h1 b{color:var(--r)}h2{margin:.2em 0}
+.card{background:var(--p);border:1px solid #2a4a85;border-radius:14px;padding:16px;margin:12px 0}
+button{background:var(--g);color:#052;border:0;border-radius:10px;padding:12px 18px;font-size:16px;font-weight:700;cursor:pointer}
+button.s{background:#2a4a85;color:var(--t)}button:disabled{opacity:.4}
+input{font-size:18px;padding:12px;border-radius:10px;border:1px solid #2a4a85;background:#0B1730;color:var(--t);width:100%}
+.grid{display:grid;gap:8px}.st{padding:10px;border-radius:10px;border:2px solid;background:#0B1730;color:var(--t);text-align:left;font-weight:600}
+.st small{display:block;color:var(--m);font-weight:400}.st.sel{background:var(--l);color:#06122b}
+.z1{border-color:var(--z1)}.z2{border-color:var(--z2)}.z3{border-color:var(--z3)}
+.big{font-size:22px;line-height:1.4}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+table{width:100%;border-collapse:collapse}td,th{padding:8px;text-align:left;border-bottom:1px solid #2a4a85}
+.ok{color:var(--g)}.ko{color:var(--r)}.tm{font-size:56px;font-weight:800}
+.chip{display:inline-block;padding:2px 10px;border-radius:99px;background:#2a4a85;margin:2px}
+.gone{opacity:.5;text-decoration:line-through}
+</style></head><body><div class="w" id="app"></div>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+const DATA={"stations": {"1": {"nom": "Reconnaissance", "en": "Reconnaissance", "id": "TA0043"}, "2": {"nom": "Préparation", "en": "Resource Development", "id": "TA0042"}, "3": {"nom": "Accès initial", "en": "Initial Access", "id": "TA0001"}, "4": {"nom": "Exécution", "en": "Execution", "id": "TA0002"}, "5": {"nom": "Persistance", "en": "Persistence", "id": "TA0003"}, "6": {"nom": "Élévation de privilèges", "en": "Privilege Escalation", "id": "TA0004"}, "7": {"nom": "Discrétion", "en": "Stealth", "id": "TA0005"}, "8": {"nom": "Défenses affaiblies", "en": "Defense Impairment", "id": "TA0112"}, "9": {"nom": "Accès aux identifiants", "en": "Credential Access", "id": "TA0006"}, "10": {"nom": "Découverte", "en": "Discovery", "id": "TA0007"}, "11": {"nom": "Mouvement latéral", "en": "Lateral Movement", "id": "TA0008"}, "12": {"nom": "Collecte", "en": "Collection", "id": "TA0009"}, "13": {"nom": "Commande et contrôle", "en": "Command and Control", "id": "TA0011"}, "14": {"nom": "Exfiltration", "en": "Exfiltration", "id": "TA0010"}, "15": {"nom": "Impact", "en": "Impact", "id": "TA0040"}}, "scenarios": [{"id": 1, "nom": "Le dimanche de TransLor", "sous": "Rançongiciel via un compte d’ancien salarié (EXO 3)", "niveau": 1, "constats": [{"tech": "T1078", "st": 3, "txt": "Samedi 23 h 47 : le VPN accepte la connexion du compte de Paul M., ancien technicien parti il y a 4 mois. Le compte n’avait jamais été désactivé.", "exp": "L’attaquant entre avec un compte valide oublié : Accès initial (T1078). Piste : désactivation des comptes au départ."}, {"tech": "T1133", "st": 5, "txt": "Le même compte est utilisé chaque nuit depuis la même adresse étrangère : le VPN sert de porte d’entrée durable, sans aucun logiciel malveillant.", "exp": "Un service d’accès distant exposé permet de revenir quand on veut : Persistance (T1133)."}, {"tech": "T1087.002", "st": 10, "txt": "Dimanche 0 h 20 : une série de requêtes liste les comptes et groupes de l’annuaire, dont celui des administrateurs du domaine.", "exp": "L’attaquant cherche qui est qui avant d’aller plus loin : Découverte (T1087.002)."}, {"tech": "T1003.001", "st": 9, "txt": "À 0 h 52, un outil lit la mémoire du processus LSASS sur un serveur de fichiers. L’EDR remonte une alerte de gravité moyenne.", "exp": "Le vol des mots de passe en mémoire relève d’Accès aux identifiants (T1003.001)."}, {"tech": "T1059.001", "st": 4, "txt": "Des scripts PowerShell encodés en base64 se lancent sur plusieurs postes depuis la même session.", "exp": "L’attaquant exécute des commandes : Exécution (T1059.001)."}, {"tech": "T1021.001", "st": 11, "txt": "Une session Bureau à distance s’ouvre depuis le serveur de fichiers vers le contrôleur de domaine, avec le compte d’un administrateur.", "exp": "Passer d’une machine à l’autre avec des identifiants volés : Mouvement latéral (T1021.001)."}, {"tech": "T1021.002", "st": 11, "txt": "Un exécutable est copié via les partages d’administration (C$) sur 30 serveurs en 10 minutes.", "exp": "Même tactique, autre technique : Mouvement latéral (T1021.002). Il prépare le déploiement."}, {"tech": "T1490", "st": 15, "txt": "Les sauvegardes en ligne et les copies instantanées Windows sont supprimées à 3 h 05. La dernière sauvegarde hors ligne date de 9 jours.", "exp": "Empêcher la restauration est un Impact (T1490)."}, {"tech": "T1486", "st": 15, "txt": "À 3 h 30, les fichiers de 40 serveurs portent l’extension .locked et une note de rançon s’affiche.", "exp": "Chiffrement par rançongiciel : Impact (T1486)."}, {"tech": "T1567.002", "st": 14, "txt": "Avant le chiffrement, 120 Go ont été envoyés vers un service de stockage cloud. L’attaquant menace de publier les données.", "exp": "Double extorsion : Exfiltration (T1567.002)."}]}, {"id": 2, "nom": "Exchange en péril", "sous": "Campagne Hafnium transposée (EXO 5)", "niveau": 3, "constats": [{"tech": "T1190", "st": 3, "txt": "Le serveur de messagerie Exchange exposé sur Internet reçoit des requêtes inhabituelles vers une page d’autodécouverte, puis une réponse anormale.", "exp": "Exploitation d’une application exposée : Accès initial (T1190). Piste : correctif et segmentation."}, {"tech": "T1505.003", "st": 5, "txt": "Un fichier .aspx inconnu apparaît dans un répertoire du serveur web. Il répond à des commandes envoyées par des requêtes HTTP.", "exp": "Un web shell garantit le retour de l’attaquant : Persistance (T1505.003)."}, {"tech": "T1059.001", "st": 4, "txt": "Le processus du serveur web lance PowerShell, ce qui est anormal pour lui.", "exp": "Exécution (T1059.001) : le web shell exécute des commandes."}, {"tech": "T1003.001", "st": 9, "txt": "Une copie de la mémoire de LSASS est créée sur le serveur de messagerie, puis envoyée vers le web shell.", "exp": "Accès aux identifiants (T1003.001)."}, {"tech": "T1003.003", "st": 9, "txt": "Une copie de la base NTDS.dit est réalisée sur un contrôleur de domaine à l’aide d’un utilitaire d’administration.", "exp": "Même tactique, autre technique : Accès aux identifiants (T1003.003). Toutes les empreintes de l’entreprise sont exposées."}, {"tech": "T1560.001", "st": 12, "txt": "Des archives .zip protégées par mot de passe sont créées dans un répertoire temporaire, avec des boîtes aux lettres de la direction.", "exp": "Préparer les données avant de les sortir : Collecte (T1560.001)."}, {"tech": "T1114.002", "st": 12, "txt": "Des requêtes d’export de boîtes aux lettres sont exécutées depuis le serveur, pour 14 comptes dont ceux du PDG et du DAF.", "exp": "Voler des courriels : Collecte (T1114.002)."}, {"tech": "T1567.002", "st": 14, "txt": "Les archives sont envoyées vers un service de partage de fichiers public, en dehors des heures ouvrées.", "exp": "Exfiltration (T1567.002) : volume élevé vers un service cloud."}]}, {"id": 3, "nom": "Le faux fournisseur", "sous": "Fraude au RIB par hameçonnage (EXO 6)", "niveau": 2, "constats": [{"tech": "T1583.001", "st": 2, "txt": "Un nom de domaine qui ressemble à celui d’un fournisseur de TransLor (une lettre changée) a été enregistré hier. TransLor ne le sait pas encore.", "exp": "L’attaquant prépare ses outils : Préparation (T1583.001). Piste : surveillance des domaines similaires."}, {"tech": "T1589.002", "st": 1, "txt": "Quelqu’un a collecté sur Internet les adresses e-mail du service comptabilité et le nom du DAF.", "exp": "Collecte d’informations sur la cible : Reconnaissance (T1589.002)."}, {"tech": "T1566.002", "st": 3, "txt": "Un comptable reçoit un courriel de « son fournisseur » avec un lien vers un faux portail pour mettre à jour ses coordonnées.", "exp": "Hameçonnage par lien : Accès initial (T1566.002)."}, {"tech": "T1078", "st": 3, "txt": "Les identifiants saisis sur le faux portail sont utilisés dans l’heure pour se connecter à la messagerie en ligne depuis un autre pays.", "exp": "Accès initial (T1078) : compte valide obtenu par hameçonnage."}, {"tech": "T1114.002", "st": 12, "txt": "L’attaquant lit pendant 3 jours les échanges avec le fournisseur et repère le calendrier des paiements.", "exp": "Collecte (T1114.002) : lecture de courriels distante."}, {"tech": "T1564.008", "st": 7, "txt": "Une règle de messagerie envoie dans un dossier caché tous les courriels contenant « RIB » ou « virement ».", "exp": "Cacher ses traces : Discrétion (T1564.008)."}, {"tech": "T1565.001", "st": 15, "txt": "Dans la pièce jointe d’une vraie facture, le RIB a été remplacé par un autre sans que rien ne change visuellement.", "exp": "Altération de données : Impact (T1565.001)."}, {"tech": "T1657", "st": 15, "txt": "Un virement de 187 000 € part vers un compte inconnu. Le fournisseur n’en sait rien.", "exp": "Vol financier : Impact (T1657). Piste : double validation par appel au numéro connu."}]}, {"id": 4, "nom": "Le portail percé", "sous": "Intrusion par le portail de suivi des colis", "niveau": 2, "constats": [{"tech": "T1595.002", "st": 1, "txt": "Depuis 2 jours, le portail de suivi des colis reçoit des milliers de requêtes qui testent des failles connues, venant de la même plage d’adresses.", "exp": "Reconnaissance (T1595.002) : scan de vulnérabilités."}, {"tech": "T1190", "st": 3, "txt": "Une requête inhabituelle sur le portail déclenche une erreur, puis un accès à une page d’administration jamais exposée.", "exp": "Exploitation d’une application exposée : Accès initial (T1190)."}, {"tech": "T1505.003", "st": 5, "txt": "Un nouveau fichier de script apparaît dans le dossier d’envoi de documents du portail.", "exp": "Web shell : Persistance (T1505.003)."}, {"tech": "T1071.001", "st": 13, "txt": "Le serveur du portail contacte un site inconnu toutes les 60 secondes avec de petites requêtes HTTPS régulières.", "exp": "Communication régulière vers l’attaquant : Commande et contrôle (T1071.001)."}, {"tech": "T1083", "st": 10, "txt": "Le compte du portail parcourt les répertoires et liste les fichiers de plusieurs partages réseau.", "exp": "Découverte (T1083)."}, {"tech": "T1552.001", "st": 9, "txt": "Un fichier de configuration lu par l’attaquant contient en clair le mot de passe de la base de données clients.", "exp": "Identifiants dans des fichiers : Accès aux identifiants (T1552.001)."}, {"tech": "T1078", "st": 11, "txt": "Avec ce mot de passe, l’attaquant se connecte à un second serveur d’application qui n’était pas exposé.", "exp": "Il se déplace avec un compte valide : Mouvement latéral (T1078). Piste : mots de passe en coffre et comptes de service cloisonnés."}, {"tech": "T1005", "st": 12, "txt": "La base clients (300 000 lignes) est copiée dans un fichier temporaire sur le serveur.", "exp": "Collecte (T1005) : données du système local."}, {"tech": "T1041", "st": 14, "txt": "Le fichier temporaire est envoyé via le même canal HTTPS que les échanges réguliers.", "exp": "Exfiltration par le canal C2 (T1041)."}]}, {"id": 5, "nom": "L’ancien collègue", "sous": "Menace interne après un départ mal préparé", "niveau": 1, "constats": [{"tech": "T1078", "st": 3, "txt": "Paul a quitté l’entreprise vendredi dans de mauvais termes. Dimanche, son compte, jamais désactivé, se connecte à la messagerie et au VPN.", "exp": "Compte valide non désactivé : Accès initial (T1078)."}, {"tech": "T1087.002", "st": 10, "txt": "Le compte consulte la liste des comptes à privilèges, ce qu’il n’avait jamais fait.", "exp": "Découverte (T1087.002)."}, {"tech": "T1098", "st": 5, "txt": "Il ajoute son compte à un groupe d’administration et crée un compte de secours.", "exp": "Manipulation de compte : Persistance (T1098)."}, {"tech": "T1213", "st": 12, "txt": "Il télécharge en masse des pages d’un espace de documentation interne, dont des procédures et des contrats.", "exp": "Collecte (T1213) : données de dépôts d’information."}, {"tech": "T1560.001", "st": 12, "txt": "Les documents sont compressés dans une archive protégée par mot de passe.", "exp": "Préparer les données : Collecte (T1560.001)."}, {"tech": "T1567.002", "st": 14, "txt": "L’archive est envoyée vers un stockage cloud personnel, à 22 h.", "exp": "Exfiltration (T1567.002)."}, {"tech": "T1485", "st": 15, "txt": "Avant de partir, il efface plusieurs dossiers de projets sur le partage commun.", "exp": "Destruction de données : Impact (T1485)."}]}]};
+const ST=DATA.stations,SC=DATA.scenarios,SEUIL=4,SECS=30;
+const $=s=>document.querySelector(s),A=$('#app');
+const qs=new URLSearchParams(location.search),MOCK=qs.get('t')==='bc';
+const zone=n=>n<=5?1:n<=10?2:3;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* ---- transport ---- */
+function mkId(){return 'bc'+Math.random().toString(36).slice(2,6).toUpperCase()}
+function Host(code,onMsg){ // returns {send(to,msg),broadcast(msg)}
+  const conns={};
+  if(MOCK){const ch=new BroadcastChannel('bc-'+code);ch.onmessage=e=>{const m=e.data;if(m.to==='host'){conns[m.from]=1;onMsg(m.from,m.msg)}};
+    return {send:(to,msg)=>ch.postMessage({to,msg}),broadcast:msg=>ch.postMessage({to:'*',msg}),ready:Promise.resolve()}}
+  const peer=new Peer('BC-'+code);
+  const ready=new Promise((ok,ko)=>{peer.on('open',ok);peer.on('error',ko)});
+  peer.on('connection',c=>{c.on('open',()=>{conns[c.peer]=c});c.on('data',d=>onMsg(c.peer,d));c.on('close',()=>{onMsg(c.peer,{t:'bye'});delete conns[c.peer]})});
+  return {send:(to,msg)=>conns[to]&&conns[to].send(msg),broadcast:msg=>Object.values(conns).forEach(c=>c.send(msg)),ready}
+}
+function Client(code,onMsg){
+  const me='p'+Math.random().toString(36).slice(2,8);
+  if(MOCK){const ch=new BroadcastChannel('bc-'+code);ch.onmessage=e=>{const m=e.data;if(m.to===me||m.to==='*')onMsg(m.msg)};
+    return {send:msg=>ch.postMessage({to:'host',from:me,msg}),ready:Promise.resolve()}}
+  const peer=new Peer();let c;
+  const ready=new Promise((ok,ko)=>{peer.on('open',()=>{c=peer.connect('BC-'+code,{reliable:true});c.on('open',ok);c.on('data',onMsg);c.on('close',()=>onMsg({t:'lost'}))});peer.on('error',ko)});
+  return {send:msg=>c&&c.open&&c.send(msg),ready}
+}
+/* ---- home ---- */
+function home(){
+  if(qs.get('room'))return join(qs.get('room').toUpperCase());
+  A.innerHTML=`<h1>BRISER <b>LA CHAÎNE</b></h1><p style="color:var(--m)">Jeu de plateau MITRE ATT&amp;CK, version téléphone.</p>
+  <div class="card"><h2>Animateur</h2><p>Lancez la partie depuis l’ordinateur relié au vidéoprojecteur.</p><button onclick="hostSetup()">Créer une partie</button></div>
+  <div class="card"><h2>Équipe</h2><p>Saisissez le code affiché au tableau.</p><div class="row"><input id="code" maxlength="8" placeholder="Code (ex. K3F9)" style="max-width:260px"><button onclick="join($('#code').value.trim().toUpperCase())">Rejoindre</button></div></div>`;
+}
+/* ---- host ---- */
+let H,G;
+function hostSetup(){
+  const code=MOCK?mkId().slice(2):Math.random().toString(36).slice(2,6).toUpperCase();
+  G={code,teams:{},order:[],sc:null,i:-1,phase:'lobby',answers:{},t0:0};
+  H=Host(code,onPlayer);
+  A.innerHTML='<p>Connexion…</p>';
+  H.ready.then(()=>lobby(),e=>{A.innerHTML='<div class="card ko">Connexion impossible ('+esc(e.type||e)+'). Essayez le partage de connexion du téléphone de l’animateur.</div>'});
+}
+function joinURL(){return location.origin+location.pathname+'?room='+G.code+(MOCK?'&t=bc':'')}
+function lobby(){
+  const url=joinURL();
+  A.innerHTML=`<h1>BRISER <b>LA CHAÎNE</b></h1><div class="row" style="align-items:flex-start">
+  <div class="card" style="flex:1;min-width:280px"><div style="color:var(--m)">Code de la partie</div><div class="tm" style="letter-spacing:6px">${G.code}</div>
+  <div id="qr"></div><div style="word-break:break-all;color:var(--m);font-size:13px">${esc(url)}</div></div>
+  <div class="card" style="flex:2;min-width:280px"><h2>Scénario</h2>${SC.map(s=>`<label style="display:block;margin:6px 0"><input type="radio" name="sc" value="${s.id}" ${G.sc==s.id?'checked':''} style="width:auto" onchange="G.sc=+this.value;lobbyBtn()"> <b>${s.id}. ${esc(s.nom)}</b> ${'★'.repeat(s.niveau)} <span style="color:var(--m)">${esc(s.sous)}</span></label>`).join('')}
+  <h2>Équipes connectées</h2><div id="tl"></div><button id="go" onclick="start()" disabled>Lancer la partie</button></div></div>`;
+  qr();lobbyBtn();
+}
+function qr(){const e=$('#qr');if(!e)return;const u='https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data='+encodeURIComponent(joinURL());e.innerHTML=`<img src="${u}" width="220" height="220" alt="QR" style="background:#fff;border-radius:10px;margin-top:8px" onerror="this.replaceWith(document.createTextNode('QR indisponible : saisir le code'))">`}
+function lobbyBtn(){const t=$('#tl');if(!t)return;t.innerHTML=G.order.length?G.order.map(i=>`<span class="chip">${esc(G.teams[i].nom)}</span>`).join(''):'<i style="color:var(--m)">En attente des équipes…</i>';$('#go').disabled=!(G.sc&&G.order.length)}
+function onPlayer(id,m){
+  if(m.t==='bye'){if(G.teams[id])G.teams[id].off=1;return}
+  if(m.t==='hello'){
+    let k=G.order.find(i=>G.teams[i].nom.toLowerCase()===m.nom.toLowerCase());
+    if(!k&&G.phase!=='lobby'){H.send(id,{t:'refus'});return}
+    if(k&&k!==id){G.teams[id]=G.teams[k];delete G.teams[k];G.order[G.order.indexOf(k)]=id;if(G.answers[k]){G.answers[id]=G.answers[k];delete G.answers[k]}}
+    else if(!k){G.teams[id]={nom:m.nom,bar:0,imp:0,out:0};G.order.push(id)}
+    G.teams[id].off=0;H.send(id,{t:'ok',nom:m.nom});if(G.phase==='lobby')lobbyBtn();else{syncOne(id);hostView()}
+  }
+  if(m.t==='ans'&&G.phase==='ask'&&G.teams[id]&&!G.teams[id].out){G.answers[id]=m.st;hostView()}
+}
+function cur(){return SC.find(s=>s.id==G.sc).constats[G.i]}
+function start(){G.phase='next';G.i=-1;G.order.forEach(i=>Object.assign(G.teams[i],{bar:0,imp:0,out:0}));next()}
+function next(){
+  const s=SC.find(x=>x.id==G.sc);G.i++;G.answers={};
+  if(G.i>=s.constats.length){G.phase='end';hostView();H.broadcast({t:'end',res:ranking()});return}
+  G.phase='ask';G.t0=Date.now();hostView();
+  H.broadcast({t:'ask',n:G.i+1,of:s.constats.length,txt:cur().txt,secs:SECS});
+  clearInterval(G.tm);G.tm=setInterval(tick,250);
+}
+function tick(){if(G.phase!=='ask'){clearInterval(G.tm);return}const left=Math.max(0,SECS-Math.floor((Date.now()-G.t0)/1000));const e=$('#tmr');if(e)e.textContent=left;}
+function live(){return G.order.filter(i=>!G.teams[i].out)}
+function reveal(){
+  clearInterval(G.tm);const c=cur(),res={};
+  live().forEach(i=>{const t=G.teams[i],a=G.answers[i],r={ans:a||null};
+    if(a===c.st){t.bar++;r.ok=1}else{r.ok=0;r.d6=1+Math.floor(Math.random()*6);r.hit=r.d6>=3;if(r.hit){r.dmg=c.st>=11?2:1;t.imp+=r.dmg;if(t.imp>=SEUIL){t.out=1;r.out=1}}}
+    r.bar=t.bar;r.imp=t.imp;res[i]=r});
+  G.res=res;G.phase='rev';hostView();
+  G.order.forEach(i=>H.send(i,{t:'rev',st:c.st,stn:ST[c.st].nom,exp:c.exp,tech:c.tech,r:res[i]||null,last:G.i>=SC.find(x=>x.id==G.sc).constats.length-1}));
+}
+function syncOne(id){
+  if(G.phase==='ask'){const s=SC.find(x=>x.id==G.sc);H.send(id,{t:'ask',n:G.i+1,of:s.constats.length,txt:cur().txt,secs:Math.max(0,SECS-Math.floor((Date.now()-G.t0)/1000))})}
+}
+function ranking(){return G.order.map(i=>{const t=G.teams[i];return{nom:t.nom,bar:t.bar,imp:t.imp,out:t.out,score:t.bar-t.imp}}).sort((a,b)=>a.out-b.out||b.score-a.score)}
+function hostView(){
+  if(!H||G.phase==='lobby')return;
+  const s=SC.find(x=>x.id==G.sc),c=G.i>=0&&G.i<s.constats.length?cur():null;
+  let h=`<div class="row" style="justify-content:space-between"><h2>${esc(s.nom)}</h2><span class="chip">Code ${G.code}</span></div>`;
+  if(G.phase==='ask'){
+    const n=live().length,got=live().filter(i=>G.answers[i]).length;
+    h+=`<div class="card"><div style="color:var(--m)">Constat ${G.i+1} / ${s.constats.length}</div><div class="big" style="margin:10px 0">${esc(c.txt)}</div>
+    <div class="row"><div class="tm" id="tmr">${SECS}</div><div>Réponses : <b>${got}</b> / ${n}</div><div style="flex:1"></div><button onclick="reveal()">Révéler</button></div>
+    <div>${live().map(i=>`<span class="chip ${G.answers[i]?'ok':''}">${esc(G.teams[i].nom)} ${G.answers[i]?'✓':'…'}</span>`).join('')}</div></div>
+    <div class="card" style="color:var(--m)">Placez le pion Attaquant après la révélation. Station attendue : <b>${c.st}. ${ST[c.st].nom}</b> (visible par l’animateur seulement).</div>`;
+  }else if(G.phase==='rev'){
+    h+=`<div class="card"><div style="color:var(--m)">Constat ${G.i+1} / ${s.constats.length}</div><div class="big">${esc(c.txt)}</div>
+    <h2 class="ok">Station ${c.st} : ${ST[c.st].nom} (${ST[c.st].id})</h2><p>${esc(c.exp)}</p><p style="color:var(--m)">Technique : ${c.tech}</p>
+    <p><b>Pion Attaquant</b> sur la station ${c.st}. Barrières sur la station pour les équipes justes.</p>
+    <table><tr><th>Équipe</th><th>Réponse</th><th>Résultat</th><th>Barrières</th><th>Impact</th></tr>
+    ${G.order.map(i=>{const t=G.teams[i],r=G.res[i];if(!r)return`<tr class="gone"><td>${esc(t.nom)}</td><td colspan=4>compromise</td></tr>`;
+      return`<tr><td>${esc(t.nom)}</td><td>${r.ans?r.ans+'. '+ST[r.ans].nom:'—'}</td><td>${r.ok?'<span class=ok>Juste → Barrière</span>':'<span class=ko>Faux, dé '+r.d6+' : '+(r.hit?'+'+r.dmg+' Impact':'attaque repoussée')+(r.out?' ☠ COMPROMISE':'')+'</span>'}</td><td>${r.bar}</td><td>${r.imp}/${SEUIL}</td></tr>`}).join('')}</table>
+    <div class="row" style="margin-top:12px"><button onclick="next()">${G.i>=s.constats.length-1?'Voir le classement':'Constat suivant'}</button></div></div>`;
+  }else if(G.phase==='end'){
+    h+=`<div class="card"><h2>Classement final</h2><table><tr><th>#</th><th>Équipe</th><th>Barrières</th><th>Impact</th><th>Score</th></tr>${ranking().map((r,k)=>`<tr class="${r.out?'gone':''}"><td>${r.out?'☠':k+1}</td><td>${esc(r.nom)}</td><td>${r.bar}</td><td>${r.imp}</td><td><b>${r.score}</b></td></tr>`).join('')}</table>
+    <p style="color:var(--m)">Score = Barrières − Impact. Une équipe à ${SEUIL} d’Impact est compromise et sort du classement.</p>
+    <h3>Rappel de la chaîne d’attaque</h3><ol>${s.constats.map(x=>`<li>${esc(x.txt)}<br><b>${x.st}. ${ST[x.st].nom}</b> <span style="color:var(--m)">(${x.tech})</span></li>`).join('')}</ol>
+    <button onclick="location.reload()">Nouvelle partie</button></div>`;
+  }
+  A.innerHTML=h;
+}
+/* ---- player ---- */
+let C,P={};
+function join(code){
+  if(!code)return;
+  const saved=sessionStorage.getItem('nom-'+code)||'';
+  A.innerHTML=`<h1>BRISER <b>LA CHAÎNE</b></h1><div class="card"><p>Partie <b>${esc(code)}</b></p><input id="nom" maxlength="20" placeholder="Nom de votre équipe" value="${esc(saved)}"><br><br><button onclick="hello('${esc(code)}')">Entrer</button><p id="msg" style="color:var(--m)"></p></div>`;
+}
+function hello(code){
+  const nom=$('#nom').value.trim();if(!nom)return;try{sessionStorage.setItem('nom-'+code,nom)}catch(e){}
+  $('#msg').textContent='Connexion…';P={code,nom,sel:null};
+  C=Client(code,onHost);
+  C.ready.then(()=>C.send({t:'hello',nom}),()=>{$('#msg').textContent='Connexion impossible. Vérifiez le code et le réseau.'});
+}
+function onHost(m){
+  if(m.t==='ok')return wait('Connecté. En attente du début de la partie…');
+  if(m.t==='refus')return wait('Partie déjà commencée. Rejoignez avec le même nom d’équipe qu’avant.');
+  if(m.t==='lost')return wait('Connexion perdue. Rechargez la page et saisissez le même nom.');
+  if(m.t==='ask'){P.sel=null;P.m=m;P.t0=Date.now();ask()}
+  if(m.t==='rev')rev(m);
+  if(m.t==='end')end(m);
+}
+function wait(t){A.innerHTML=`<h1>BRISER <b>LA CHAÎNE</b></h1><div class="card"><b>${esc(P.nom||'')}</b><p>${esc(t)}</p></div>`}
+function ask(){
+  const m=P.m;let h=`<div style="color:var(--m)">${esc(P.nom)} · Constat ${m.n}/${m.of}</div><div class="card"><div style="font-size:18px">${esc(m.txt)}</div></div><p style="margin:6px 0">Sur quelle station se trouve l’attaquant ?</p>`;
+  for(const z of [1,2,3]){h+=`<div style="color:var(--m);margin:8px 0 4px">${['','DEHORS · préparer et entrer','DEDANS · s’installer et progresser','LE CŒUR · prendre et partir'][z]}</div><div class="grid" style="grid-template-columns:1fr 1fr">`;
+    for(let n=(z-1)*5+1;n<=z*5;n++)h+=`<button class="st z${z} ${P.sel===n?'sel':''}" onclick="pick(${n})">${n}. ${ST[n].nom}<small>${ST[n].en}</small></button>`;h+='</div>'}
+  h+=`<p id="ok" style="color:var(--g)">${P.sel?'Réponse envoyée : station '+P.sel+'. Vous pouvez la changer.':''}</p>`;
+  A.innerHTML=h;
+}
+function pick(n){P.sel=n;C.send({t:'ans',st:n});ask()}
+function rev(m){
+  const r=m.r;let h=`<div style="color:var(--m)">${esc(P.nom)}</div>`;
+  if(!r)h+=`<div class="card ko"><h2>Votre équipe est compromise</h2></div>`;
+  else if(r.ok)h+=`<div class="card"><h2 class="ok">Juste ! +1 Barrière</h2></div>`;
+  else h+=`<div class="card"><h2 class="ko">${r.ans?'Pas la bonne station':'Pas de réponse'}</h2><p>Dé : <b style="font-size:28px">${r.d6}</b> → ${r.hit?'<b class=ko>+'+r.dmg+' Impact</b>':'<b class=ok>attaque repoussée</b>'}${r.out?'<br><b class=ko>☠ Votre équipe est compromise</b>':''}</p></div>`;
+  h+=`<div class="card"><div style="color:var(--m)">Bonne réponse</div><h2>${m.st}. ${esc(m.stn)}</h2><p>${esc(m.exp)}</p><span class="chip">${m.tech}</span></div>`;
+  if(r)h+=`<div class="card">Barrières <b>${r.bar}</b> · Impact <b>${r.imp}/4</b></div>`;
+  A.innerHTML=h+'<p style="color:var(--m)">En attente du constat suivant…</p>';
+}
+function end(m){A.innerHTML=`<h1>Classement</h1><div class="card"><table>${m.res.map((r,k)=>`<tr class="${r.out?'gone':''}"><td>${r.out?'☠':k+1}</td><td>${esc(r.nom)}</td><td><b>${r.score}</b></td></tr>`).join('')}</table></div>`}
+home();
+</script></body></html>
