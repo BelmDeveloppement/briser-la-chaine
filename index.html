@@ -67,11 +67,11 @@ function lobby(){
   <div class="card" style="flex:1;min-width:280px"><div style="color:var(--m)">Code de la partie</div><div class="tm" style="letter-spacing:6px">${G.code}</div>
   <div id="qr"></div><div style="word-break:break-all;color:var(--m);font-size:13px">${esc(url)}</div></div>
   <div class="card" style="flex:2;min-width:280px"><h2>Scénario</h2>${SC.map(s=>`<label style="display:block;margin:6px 0"><input type="radio" name="sc" value="${s.id}" ${G.sc==s.id?'checked':''} style="width:auto" onchange="G.sc=+this.value;lobbyBtn()"> <b>${s.id}. ${esc(s.nom)}</b> ${'★'.repeat(s.niveau)} <span style="color:var(--m)">${esc(s.sous)}</span></label>`).join('')}
-  <h2>Équipes connectées</h2><div id="tl"></div><button id="go" onclick="start()" disabled>Lancer la partie</button></div></div>`;
+  <h2>Équipes connectées</h2><div id="tl"></div><button id="go" onclick="start()">Lancer la partie</button> <span id="hint" class="ko"></span></div></div>`;
   qr();lobbyBtn();
 }
 function qr(){const e=$('#qr');if(!e)return;const u='https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data='+encodeURIComponent(joinURL());e.innerHTML=`<img src="${u}" width="220" height="220" alt="QR" style="background:#fff;border-radius:10px;margin-top:8px" onerror="this.replaceWith(document.createTextNode('QR indisponible : saisir le code'))">`}
-function lobbyBtn(){const t=$('#tl');if(!t)return;t.innerHTML=G.order.length?G.order.map(i=>`<span class="chip">${esc(G.teams[i].nom)}</span>`).join(''):'<i style="color:var(--m)">En attente des équipes…</i>';$('#go').disabled=!(G.sc&&G.order.length)}
+function lobbyBtn(){const t=$('#tl');if(!t)return;t.innerHTML=G.order.length?G.order.map(i=>`<span class="chip">${esc(G.teams[i].nom)}</span>`).join(''):'<i style="color:var(--m)">En attente des équipes…</i>';const h=$('#hint');if(h)h.textContent=!G.sc?'Choisissez d’abord un scénario ci-dessus.':!G.order.length?'Aucune équipe connectée.':''}
 function onPlayer(id,m){
   if(m.t==='bye'){if(G.teams[id])G.teams[id].off=1;return}
   if(m.t==='hello'){
@@ -84,7 +84,7 @@ function onPlayer(id,m){
   if(m.t==='ans'&&G.phase==='ask'&&G.teams[id]&&!G.teams[id].out){G.answers[id]=m.st;hostView()}
 }
 function cur(){return SC.find(s=>s.id==G.sc).constats[G.i]}
-function start(){G.phase='next';G.i=-1;G.order.forEach(i=>Object.assign(G.teams[i],{bar:0,imp:0,out:0}));next()}
+function start(){if(!G.sc||!G.order.length){lobbyBtn();return}G.phase='next';G.i=-1;G.order.forEach(i=>Object.assign(G.teams[i],{bar:0,imp:0,out:0}));next()}
 function next(){
   const s=SC.find(x=>x.id==G.sc);G.i++;G.answers={};
   if(G.i>=s.constats.length){G.phase='end';hostView();H.broadcast({t:'end',res:ranking()});return}
