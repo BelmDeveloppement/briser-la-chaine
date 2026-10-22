@@ -578,6 +578,453 @@
      "pro": "Sauvegardes versionnées, droits limités, restauration régulièrement testée."
     }
    ]
+  },
+  {
+   "id": 6,
+   "nom": "Le prestataire piégé",
+   "sous": "Intrusion par une société de maintenance (relation de confiance)",
+   "niveau": 2,
+   "constats": [
+    {
+     "tech": "T1199",
+     "st": 3,
+     "txt": "Un technicien de la société de maintenance se connecte depuis son poste au réseau de l’usine pour une intervention. Le compte du prestataire a des droits très étendus, et son poste a été piraté la veille.",
+     "exp": "L’attaquant passe par un partenaire de confiance : Initial Access (T1199). Piste : accès prestataires limités et surveillés.",
+     "ind": "« compte du prestataire » utilisé pour entrer : l’accès vient d’un tiers de confiance.",
+     "pie": "Persistence (5) : le compte existe déjà, rien n’est encore installé.",
+     "but": "Entrer par un partenaire de confiance dont les accès sont moins surveillés.",
+     "det": "Connexions du prestataire hors horaires convenus, depuis un poste ou une adresse inhabituels, droits jamais utilisés auparavant.",
+     "pro": "Accès prestataires limités dans le temps et en droits, MFA, supervision dédiée, clauses de sécurité dans les contrats."
+    },
+    {
+     "tech": "T1219",
+     "st": 13,
+     "txt": "Un logiciel de prise en main à distance que la DSI n’a jamais installé apparaît sur un serveur et reste connecté à un service extérieur toute la journée.",
+     "exp": "Un outil légitime de contrôle à distance sert de canal de pilotage : Command and Control (T1219).",
+     "ind": "« logiciel de prise en main à distance » non prévu, relié à l’extérieur : un canal de pilotage.",
+     "pie": "Lateral Movement (11) : l’outil ne sert pas à passer d’une machine à l’autre mais à garder le contrôle.",
+     "but": "Utiliser un outil de prise en main à distance autorisé ailleurs pour piloter la machine sans malware.",
+     "det": "Logiciels de contrôle à distance inconnus, connexions vers des services de relais, processus nouveaux sur des serveurs.",
+     "pro": "Liste blanche des logiciels, blocage des outils non validés, filtrage des sorties réseau."
+    },
+    {
+     "tech": "T1136.001",
+     "st": 5,
+     "txt": "Un compte local « svc_backup2 » est créé avec des droits d’administrateur sur le serveur de supervision, un dimanche à 3 h.",
+     "exp": "Créer un compte pour pouvoir revenir : Persistence (T1136.001).",
+     "ind": "« nouveau compte local créé » : un accès de secours qui reste.",
+     "pie": "Privilege Escalation (6) : le compte reçoit des droits, mais le but est de durer, pas de monter en droits.",
+     "but": "Créer un compte local pour garder un accès même si le compte d’origine est coupé.",
+     "det": "Création de comptes locaux hors procédure, comptes d’administration récents, alertes sur les groupes sensibles.",
+     "pro": "Création de comptes tracée et validée, alertes sur les nouveaux comptes privilégiés, revue des comptes locaux."
+    },
+    {
+     "tech": "T1018",
+     "st": 10,
+     "txt": "Depuis le serveur de supervision, des requêtes interrogent la liste des machines du réseau industriel, une par une.",
+     "exp": "L’attaquant dresse la liste des machines à portée : Discovery (T1018).",
+     "ind": "« liste des machines du réseau » : il cartographie.",
+     "pie": "Reconnaissance (1) : ici il observe depuis l’intérieur, pas depuis l’extérieur.",
+     "but": "Lister les machines accessibles pour choisir où aller ensuite.",
+     "det": "Requêtes réseau en série vers de nombreuses machines depuis un serveur qui n’en fait pas habituellement.",
+     "pro": "Segmentation, journalisation du trafic interne, alertes sur les balayages."
+    },
+    {
+     "tech": "T1021.001",
+     "st": 11,
+     "txt": "Une session Bureau à distance part du serveur de supervision vers le poste du directeur de production, avec un compte d’administration.",
+     "exp": "Passer d’une machine à une autre : Lateral Movement (T1021.001).",
+     "ind": "« session Bureau à distance » d’une machine vers une autre.",
+     "pie": "Initial Access (3) : l’attaquant est déjà dans le réseau.",
+     "but": "Se connecter à distance à une autre machine avec des identifiants volés.",
+     "det": "Sessions Bureau à distance entre serveurs qui n’en ont pas l’habitude, connexions d’administration depuis un poste serveur.",
+     "pro": "Limiter le Bureau à distance, comptes d’administration par niveau, segmentation réseau, MFA sur les accès d’administration."
+    },
+    {
+     "tech": "T1005",
+     "st": 12,
+     "txt": "Les plans techniques d’une nouvelle ligne de production sont copiés depuis le poste du directeur de production vers un dossier temporaire.",
+     "exp": "Collection (T1005) : données du système local.",
+     "ind": "« plans copiés » vers un dossier temporaire : rassemblement.",
+     "pie": "Exfiltration (14) : la copie reste sur place.",
+     "but": "Copier les données stockées localement sur la machine compromise.",
+     "det": "Création de gros fichiers temporaires, lectures massives de bases locales.",
+     "pro": "Chiffrement des bases, droits minimum du compte applicatif, supervision des volumes."
+    },
+    {
+     "tech": "T1560.001",
+     "st": 12,
+     "txt": "Les plans sont compressés dans une archive .7z protégée par mot de passe.",
+     "exp": "Préparer les données avant de les sortir : Collection (T1560.001).",
+     "ind": "« archive protégée par mot de passe » : préparation avant sortie.",
+     "pie": "Exfiltration (14) : l’archive est encore sur place.",
+     "but": "Compresser et protéger les données pour les sortir plus vite et sans être vu.",
+     "det": "Création d’archives de grande taille dans un répertoire temporaire, outils de compression lancés par des services.",
+     "pro": "Surveillance des outils de compression, prévention de la perte de données, limitation des droits de lecture."
+    },
+    {
+     "tech": "T1567.002",
+     "st": 14,
+     "txt": "Pendant la nuit, l’archive part vers un service de stockage cloud grand public.",
+     "exp": "Exfiltration (T1567.002) : sortie vers un service cloud.",
+     "ind": "« archive qui part vers un service cloud » : les données sortent.",
+     "pie": "Command and Control (13) : c’est un envoi de données, pas un canal de pilotage.",
+     "but": "Sortir les données vers un stockage cloud public que le réseau laisse passer.",
+     "det": "Gros volumes vers des services de partage de fichiers, en dehors des heures de travail.",
+     "pro": "Filtrage des services cloud non autorisés, prévention de la perte de données, alertes sur les volumes sortants."
+    }
+   ]
+  },
+  {
+   "id": 7,
+   "nom": "La fatigue du second facteur",
+   "sous": "Messagerie cloud compromise par épuisement de l’authentification multifacteur",
+   "niveau": 2,
+   "constats": [
+    {
+     "tech": "T1589.002",
+     "st": 1,
+     "txt": "Les adresses e-mail de tous les salariés du siège sont affichées sur un annuaire d’entreprises avec leurs fonctions. Quelqu’un en a fait la liste hier.",
+     "exp": "Collecte d’informations sur la cible : Reconnaissance (T1589.002).",
+     "ind": "« liste des adresses » collectée : on se renseigne.",
+     "pie": "Resource Development (2) : rien n’a encore été construit.",
+     "but": "Constituer la liste des personnes à viser (adresses, fonctions) pour un hameçonnage crédible.",
+     "det": "Très difficile à voir : l’information est publique. On surveille plutôt ce qui exploite la liste.",
+     "pro": "Limiter ce qui est publié (organigramme, signatures), sensibiliser les services exposés comme la comptabilité."
+    },
+    {
+     "tech": "T1110.003",
+     "st": 9,
+     "txt": "Sur le portail de messagerie, un même mot de passe courant est essayé sur 800 comptes, une fois chacun, en une nuit.",
+     "exp": "Un mot de passe testé sur beaucoup de comptes : Credential Access (T1110.003).",
+     "ind": "« même mot de passe essayé sur de nombreux comptes » : on devine des identifiants.",
+     "pie": "Initial Access (3) : l’entrée vient ensuite, ici on cherche des mots de passe.",
+     "but": "Tester quelques mots de passe courants sur beaucoup de comptes sans bloquer les comptes.",
+     "det": "Échecs de connexion répartis sur de nombreux comptes depuis les mêmes adresses, un essai par compte.",
+     "pro": "MFA, mots de passe forts et listes interdites, détection du password spraying, blocage par adresse."
+    },
+    {
+     "tech": "T1621",
+     "st": 9,
+     "txt": "Une comptable reçoit 14 demandes d’approbation de connexion sur son téléphone en 20 minutes, à 2 h du matin. À la quinzième, elle accepte pour que cela s’arrête.",
+     "exp": "Fatiguer l’utilisateur jusqu’à l’approbation : Credential Access (T1621).",
+     "ind": "« demandes d’approbation répétées » : on la fatigue pour qu’elle valide.",
+     "pie": "Initial Access (3) : la connexion vient juste après, ici on obtient le second facteur.",
+     "but": "Fatiguer l’utilisateur par des demandes d’approbation répétées jusqu’à ce qu’il accepte.",
+     "det": "Rafales de demandes MFA refusées puis acceptées, souvent la nuit ou depuis un autre pays.",
+     "pro": "MFA à numéro à saisir plutôt qu’approbation simple, limite des demandes, sensibilisation : refuser et alerter."
+    },
+    {
+     "tech": "T1078.004",
+     "st": 3,
+     "txt": "Une connexion à la messagerie cloud réussit depuis un autre pays avec le compte de la comptable, juste après l’approbation.",
+     "exp": "Entrée avec un compte valide cloud : Initial Access (T1078.004).",
+     "ind": "« connexion réussie depuis un autre pays » : l’entrée avec un compte valide.",
+     "pie": "Credential Access (9) : l’identifiant est déjà obtenu, ici l’attaquant s’en sert pour entrer.",
+     "but": "Se connecter à un service cloud avec un compte réel déjà compromis.",
+     "det": "Connexions depuis un pays inhabituel, voyage impossible, nouveaux appareils, jeton d’accès rare.",
+     "pro": "MFA robuste, accès conditionnel (pays, appareil), alertes de connexion atypique."
+    },
+    {
+     "tech": "T1098.001",
+     "st": 5,
+     "txt": "Une application inconnue reçoit un accès permanent à la boîte aux lettres de la comptable, sans que son mot de passe soit nécessaire.",
+     "exp": "Un accès qui survit au changement de mot de passe : Persistence (T1098.001).",
+     "ind": "« accès permanent » donné à une application : il s’assure de garder la main.",
+     "pie": "Privilege Escalation (6) : on ne monte pas en droits, on prépare un retour.",
+     "but": "Ajouter des identifiants ou un accès permanent sur un compte cloud pour y revenir sans mot de passe.",
+     "det": "Nouvelles applications autorisées, consentements, clés ou secrets ajoutés à un compte.",
+     "pro": "Contrôle des consentements d’applications, alertes sur les nouvelles clés et secrets, revue périodique."
+    },
+    {
+     "tech": "T1530",
+     "st": 12,
+     "txt": "Des centaines de fichiers du site de partage des finances sont téléchargés depuis ce compte en 10 minutes.",
+     "exp": "Lecture d’un stockage cloud : Collection (T1530).",
+     "ind": "« centaines de fichiers téléchargés » depuis un espace de partage cloud.",
+     "pie": "Exfiltration (14) : on récupère des fichiers dans un stockage cloud : c’est la collecte.",
+     "but": "Lire des fichiers dans un stockage cloud mal protégé ou accessible avec un compte compromis.",
+     "det": "Téléchargements massifs, lectures par un compte qui consulte peu, accès hors horaires.",
+     "pro": "Droits minimum, stockage non public, journalisation des accès, alertes sur les volumes."
+    },
+    {
+     "tech": "T1657",
+     "st": 15,
+     "txt": "Un faux courriel de la comptable demande au service trésorerie un virement urgent de 92 000 €. L’ordre est exécuté.",
+     "exp": "Fraude financière : Impact (T1657).",
+     "ind": "« virement urgent exécuté » : l’attaquant encaisse.",
+     "pie": "Exfiltration (14) : ce n’est pas une donnée qui sort mais de l’argent.",
+     "but": "Obtenir de l’argent de la victime par fraude.",
+     "det": "Alerte de la banque, écarts sur les virements, appel au fournisseur.",
+     "pro": "Séparation des tâches, validation à deux personnes, rappel par un canal connu, plafonds de virement."
+    }
+   ]
+  },
+  {
+   "id": 8,
+   "nom": "Le poste du télétravailleur",
+   "sous": "Poste infecté par une facture piégée",
+   "niveau": 1,
+   "constats": [
+    {
+     "tech": "T1566.001",
+     "st": 3,
+     "txt": "Un commercial en télétravail ouvre une facture au format .docm reçue par courriel. Le document lui demande « d’activer les macros ».",
+     "exp": "Pièce jointe piégée : Initial Access (T1566.001).",
+     "ind": "« facture à ouvrir avec macros » : l’entrée se fait par la messagerie.",
+     "pie": "Execution (4) : la macro s’exécutera ensuite, ici c’est la livraison.",
+     "but": "Livrer un document piégé par messagerie pour obtenir une première exécution sur un poste.",
+     "det": "Pièces jointes avec macros, passerelle de messagerie, documents Office qui lancent des programmes.",
+     "pro": "Blocage des macros venant d’Internet, filtrage des pièces jointes, sensibilisation, bouton de signalement."
+    },
+    {
+     "tech": "T1204.002",
+     "st": 4,
+     "txt": "Après l’activation des macros, le document lance un script qui télécharge un programme sur le poste.",
+     "exp": "L’utilisateur déclenche l’exécution : Execution (T1204.002).",
+     "ind": "« activation des macros » puis lancement d’un programme : exécution provoquée par l’utilisateur.",
+     "pie": "Initial Access (3) : la pièce jointe est déjà ouverte.",
+     "but": "Pousser l’utilisateur à lancer lui-même le code, par exemple en activant les macros.",
+     "det": "Document qui lance un script ou un programme enfant, processus Office suspects.",
+     "pro": "Macros désactivées par défaut, règles de réduction de la surface d’attaque, EDR."
+    },
+    {
+     "tech": "T1547.001",
+     "st": 5,
+     "txt": "Une nouvelle entrée est ajoutée dans la clé « Run » du registre, de sorte que le programme se relance à chaque ouverture de session.",
+     "exp": "Persistance au démarrage : Persistence (T1547.001).",
+     "ind": "« se relance à chaque ouverture de session » : durer.",
+     "pie": "Execution (4) : on exécute déjà, ici on s’assure de relancer après un redémarrage.",
+     "but": "Faire redémarrer le programme malveillant à chaque ouverture de session.",
+     "det": "Nouvelles entrées dans les clés Run, programmes lancés depuis des dossiers utilisateur.",
+     "pro": "Surveillance du registre et des démarrages, EDR, droits utilisateur limités."
+    },
+    {
+     "tech": "T1027",
+     "st": 7,
+     "txt": "Le programme porte un nom banal et son contenu est brouillé pour échapper à l’antivirus, qui ne détecte rien.",
+     "exp": "Brouiller pour passer inaperçu : Stealth (T1027).",
+     "ind": "« contenu brouillé » pour échapper à l’antivirus : éviter la détection.",
+     "pie": "Defense Impairment (8) : l’antivirus n’est pas désactivé, il est contourné.",
+     "but": "Brouiller le code ou le nom d’un fichier pour échapper aux signatures de l’antivirus.",
+     "det": "Fichiers avec noms banals mais comportements anormaux, détection par comportement plutôt que par signature.",
+     "pro": "EDR comportemental, analyse en bac à sable, liste blanche d’applications."
+    },
+    {
+     "tech": "T1555.003",
+     "st": 9,
+     "txt": "Un outil lit les mots de passe enregistrés dans le navigateur de l’utilisateur.",
+     "exp": "Vol des mots de passe du navigateur : Credential Access (T1555.003).",
+     "ind": "« mots de passe enregistrés dans le navigateur ».",
+     "pie": "Collection (12) : ce ne sont pas des documents mais des identifiants.",
+     "but": "Récupérer les mots de passe enregistrés dans le navigateur.",
+     "det": "Accès au fichier de mots de passe du navigateur par un processus inattendu.",
+     "pro": "Gestionnaire de mots de passe d’entreprise, désactiver l’enregistrement dans le navigateur, MFA."
+    },
+    {
+     "tech": "T1071.001",
+     "st": 13,
+     "txt": "Le poste contacte un site inconnu en HTTPS toutes les 5 minutes, même quand l’utilisateur ne l’utilise pas.",
+     "exp": "Balise régulière vers l’attaquant : Command and Control (T1071.001).",
+     "ind": "« toutes les 5 minutes » : un battement régulier vers l’attaquant.",
+     "pie": "Exfiltration (14) : très peu de données circulent, c’est un contact, pas un envoi.",
+     "but": "Garder un canal de communication discret avec la machine compromise, dans le trafic web normal.",
+     "det": "Connexions régulières (balise) vers un site inconnu à intervalles constants, trafic HTTPS atypique.",
+     "pro": "Filtrage des sorties, proxy, détection de balises dans les flux, liste des destinations autorisées."
+    },
+    {
+     "tech": "T1041",
+     "st": 14,
+     "txt": "Un fichier de 40 Mo contenant les identifiants sort par la même connexion régulière vers le site inconnu.",
+     "exp": "Sortie par le canal de commande : Exfiltration (T1041).",
+     "ind": "« 40 Mo » par la même connexion : les données sortent.",
+     "pie": "Command and Control (13) : ici le canal sert à envoyer des données, pas à piloter.",
+     "but": "Faire sortir les données par le canal déjà établi avec l’attaquant.",
+     "det": "Volume sortant inhabituel vers l’adresse de commande et contrôle, mêmes destinations que les balises.",
+     "pro": "Filtrage des sorties, détection d’anomalies de volume, journalisation du trafic sortant."
+    }
+   ]
+  },
+  {
+   "id": 9,
+   "nom": "Le serveur oublié dans le cloud",
+   "sous": "Intrusion par un serveur de test exposé, détournement du compte cloud",
+   "niveau": 2,
+   "constats": [
+    {
+     "tech": "T1190",
+     "st": 3,
+     "txt": "Un serveur de test oublié dans le cloud, jamais mis à jour, répond à des requêtes inhabituelles qui exploitent une faille connue de son application.",
+     "exp": "Exploitation d’une application exposée : Initial Access (T1190).",
+     "ind": "« serveur de test oublié » exposé et « faille connue » : l’entrée par la faille.",
+     "pie": "Reconnaissance (1) : il ne s’agit plus de chercher, la faille est exploitée.",
+     "but": "Entrer par une faille d’un service exposé sur Internet, sans rien demander à personne.",
+     "det": "Requêtes anormales dans les journaux web, erreurs applicatives, processus enfants inattendus du serveur web.",
+     "pro": "Appliquer les correctifs rapidement, WAF, isoler les serveurs exposés dans une zone dédiée, sauvegarde de configuration."
+    },
+    {
+     "tech": "T1552.005",
+     "st": 9,
+     "txt": "Depuis ce serveur, une requête interroge l’adresse interne de métadonnées de la machine virtuelle et récupère un jeton d’accès temporaire.",
+     "exp": "Jeton volé via les métadonnées : Credential Access (T1552.005).",
+     "ind": "« adresse de métadonnées interrogée », « jeton récupéré ».",
+     "pie": "Discovery (10) : on ne cherche pas, on prend un identifiant.",
+     "but": "Obtenir un jeton d’accès cloud en interrogeant le service interne de métadonnées de la machine virtuelle.",
+     "det": "Appels à l’adresse de métadonnées depuis une application web, jetons utilisés depuis une adresse extérieure.",
+     "pro": "Version renforcée du service de métadonnées, droits minimum des machines, pare-feu applicatif."
+    },
+    {
+     "tech": "T1526",
+     "st": 10,
+     "txt": "Avec ce jeton, la liste des comptes de stockage, des bases de données et des machines du compte cloud est demandée.",
+     "exp": "Cartographier le compte cloud : Discovery (T1526).",
+     "ind": "« liste des comptes de stockage… » : repérage dans le cloud.",
+     "pie": "Collection (12) : rien n’est encore copié.",
+     "but": "Découvrir les ressources du compte cloud (stockage, bases, machines).",
+     "det": "Appels d’API de listing en rafale par une identité qui n’en fait jamais.",
+     "pro": "Droits de lecture limités, journalisation des API cloud, alertes sur le listing massif."
+    },
+    {
+     "tech": "T1136.003",
+     "st": 5,
+     "txt": "Un nouvel utilisateur cloud est créé avec un nom qui ressemble à un compte de service, et reçoit le rôle d’administrateur.",
+     "exp": "Créer un compte cloud pour durer : Persistence (T1136.003).",
+     "ind": "« nouvel utilisateur cloud créé » avec des droits.",
+     "pie": "Privilege Escalation (6) : le but est de revenir plus tard, pas de monter en droits.",
+     "but": "Créer un utilisateur cloud pour garder la main même si le jeton d’origine expire.",
+     "det": "Création d’utilisateurs hors procédure, noms imitant des comptes de service, rôles d’administrateur récents.",
+     "pro": "Création d’identités tracée, alertes sur les rôles d’administrateur, revue des comptes."
+    },
+    {
+     "tech": "T1530",
+     "st": 12,
+     "txt": "Les fichiers d’un espace de stockage qui contient des sauvegardes clients sont lus en masse.",
+     "exp": "Lecture d’un stockage cloud : Collection (T1530).",
+     "ind": "« lus en masse » dans un stockage cloud.",
+     "pie": "Exfiltration (14) : rien n’est encore sorti du compte.",
+     "but": "Lire des fichiers dans un stockage cloud mal protégé ou accessible avec un compte compromis.",
+     "det": "Téléchargements massifs, lectures par un compte qui consulte peu, accès hors horaires.",
+     "pro": "Droits minimum, stockage non public, journalisation des accès, alertes sur les volumes."
+    },
+    {
+     "tech": "T1537",
+     "st": 14,
+     "txt": "Ces fichiers sont copiés vers un autre compte cloud qui n’appartient pas à l’entreprise.",
+     "exp": "Transfert vers un autre compte cloud : Exfiltration (T1537).",
+     "ind": "« copiés vers un autre compte cloud ».",
+     "pie": "Collection (12) : la lecture est déjà faite, ici les données quittent le compte.",
+     "but": "Sortir des données vers un autre compte cloud que l’on contrôle.",
+     "det": "Copies entre comptes, partages vers des comptes inconnus, volumes inhabituels.",
+     "pro": "Politiques interdisant les partages externes, journalisation, alertes sur les transferts inter-comptes."
+    },
+    {
+     "tech": "T1496",
+     "st": 15,
+     "txt": "La facture cloud du mois triple : des dizaines de machines puissantes tournent à pleine charge sans que personne ne les ait demandées.",
+     "exp": "Détournement de ressources : Impact (T1496).",
+     "ind": "« facture qui triple » : des ressources détournées.",
+     "pie": "Execution (4) : aucun programme n’est lancé par l’attaquant sur les machines de l’entreprise, il utilise ses ressources.",
+     "but": "Détourner la puissance de calcul de la victime, souvent pour miner de la cryptomonnaie.",
+     "det": "Pics de consommation, machines inconnues, factures anormales.",
+     "pro": "Plafonds et alertes de coût, droits de création de machines limités, supervision de la consommation."
+    }
+   ]
+  },
+  {
+   "id": 10,
+   "nom": "Rançon en cascade",
+   "sous": "Rançongiciel précédé de l’arrêt des défenses et de l’effacement des traces",
+   "niveau": 3,
+   "constats": [
+    {
+     "tech": "T1566.001",
+     "st": 3,
+     "txt": "Un salarié du service achats ouvre un devis piégé reçu par courriel.",
+     "exp": "Pièce jointe piégée : Initial Access (T1566.001).",
+     "ind": "« devis piégé reçu par courriel » : l’entrée par la messagerie.",
+     "pie": "Execution (4) : le script viendra après, ici c’est la livraison.",
+     "but": "Livrer un document piégé par messagerie pour obtenir une première exécution sur un poste.",
+     "det": "Pièces jointes avec macros, passerelle de messagerie, documents Office qui lancent des programmes.",
+     "pro": "Blocage des macros venant d’Internet, filtrage des pièces jointes, sensibilisation, bouton de signalement."
+    },
+    {
+     "tech": "T1059.001",
+     "st": 4,
+     "txt": "Un script PowerShell lancé depuis la pièce jointe télécharge un second programme.",
+     "exp": "Exécution de commandes : Execution (T1059.001).",
+     "ind": "« script PowerShell » qui télécharge un programme.",
+     "pie": "Initial Access (3) : la pièce est déjà ouverte.",
+     "but": "Exécuter des commandes et des scripts sur la machine compromise.",
+     "det": "Journalisation PowerShell (bloc de script), lignes de commande encodées, processus parent inhabituel.",
+     "pro": "Mode de langage contraint, journalisation activée, restriction d’exécution des scripts, EDR."
+    },
+    {
+     "tech": "T1562.001",
+     "st": 8,
+     "txt": "L’antivirus de plusieurs postes est arrêté sans action de l’équipe sécurité, et sa politique est modifiée.",
+     "exp": "Arrêter les outils de sécurité : Defense Impairment (T1562.001).",
+     "ind": "« antivirus arrêté » par l’attaquant : les défenses sont affaiblies.",
+     "pie": "Stealth (7) : l’outil n’est pas contourné, il est mis hors service.",
+     "but": "Arrêter ou modifier les outils de sécurité avant d’attaquer.",
+     "det": "Arrêt d’un antivirus ou d’un EDR, modifications de configuration non planifiées.",
+     "pro": "Protection contre l’altération des agents, droits limités, alertes sur toute désactivation."
+    },
+    {
+     "tech": "T1003.001",
+     "st": 9,
+     "txt": "Des identifiants d’administrateur sont extraits de la mémoire d’un poste.",
+     "exp": "Vol d’identifiants en mémoire : Credential Access (T1003.001).",
+     "ind": "« identifiants extraits de la mémoire ».",
+     "pie": "Discovery (10) : on ne regarde pas l’environnement, on vole.",
+     "but": "Voler les mots de passe en mémoire pour en réutiliser les empreintes ailleurs.",
+     "det": "Accès au processus LSASS par un outil non système, alertes EDR sur le vidage mémoire.",
+     "pro": "Protéger LSASS (Credential Guard), limiter les droits d’administration locale, EDR."
+    },
+    {
+     "tech": "T1021.002",
+     "st": 11,
+     "txt": "Un exécutable est copié sur 50 serveurs via les partages d’administration.",
+     "exp": "Propagation par les partages : Lateral Movement (T1021.002).",
+     "ind": "« copié sur 50 serveurs » : propagation d’une machine à plusieurs.",
+     "pie": "Execution (4) : on ne lance pas encore le code, on le dépose.",
+     "but": "Copier des outils sur de nombreuses machines via les partages d’administration.",
+     "det": "Écritures sur les partages C$ et ADMIN$ depuis une machine inhabituelle, propagation en peu de temps.",
+     "pro": "Désactiver les partages inutiles, segmentation, pare-feu local, alerte sur les copies massives."
+    },
+    {
+     "tech": "T1070.001",
+     "st": 7,
+     "txt": "Les journaux d’événements de plusieurs serveurs sont effacés d’un coup, à 1 h du matin.",
+     "exp": "Effacer les traces : Stealth (T1070.001, rattachement à vérifier dans la v19).",
+     "ind": "« journaux effacés d’un coup » : effacer les traces.",
+     "pie": "Defense Impairment (8) : on efface des traces, on ne désactive pas un outil de défense.",
+     "but": "Effacer les journaux pour masquer ce qui s’est passé.",
+     "det": "Journaux vidés ou arrêtés, événements d’effacement, journaux centralisés qui cessent.",
+     "pro": "Centralisation des journaux hors des machines, droits restreints, alertes sur l’effacement."
+    },
+    {
+     "tech": "T1490",
+     "st": 15,
+     "txt": "Les copies de sauvegarde en ligne sont supprimées sur tous les serveurs.",
+     "exp": "Empêcher la restauration : Impact (T1490).",
+     "ind": "« copies de sauvegarde supprimées » : on détruit la capacité de se rétablir.",
+     "pie": "Defense Impairment (8) : on ne coupe pas un outil de sécurité, on détruit la récupération.",
+     "but": "Rendre la restauration impossible pour forcer le paiement de la rançon.",
+     "det": "Suppression de copies instantanées, arrêt des services de sauvegarde, commandes de suppression de sauvegardes.",
+     "pro": "Sauvegardes hors ligne et immuables, comptes de sauvegarde séparés, alertes sur toute suppression."
+    },
+    {
+     "tech": "T1486",
+     "st": 15,
+     "txt": "À 2 h 30, les fichiers de 50 serveurs sont chiffrés et une demande de rançon apparaît.",
+     "exp": "Chiffrement par rançongiciel : Impact (T1486).",
+     "ind": "« fichiers chiffrés et demande de rançon » : l’effet final.",
+     "pie": "Exfiltration (14) : rien ne sort, tout est chiffré sur place.",
+     "but": "Chiffrer les fichiers pour obtenir une rançon.",
+     "det": "Renommages massifs de fichiers, forte activité disque, note de rançon, EDR.",
+     "pro": "Sauvegardes testées, segmentation, EDR avec blocage, plan de réponse à incident."
+    }
+   ]
   }
  ]
 }
