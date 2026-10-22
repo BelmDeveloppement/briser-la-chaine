@@ -35,18 +35,17 @@ function build(){const nm=$('names').value.split('\n').map(s=>s.trim()).filter(B
  items=nm.length?nm:Array.from({length:Math.max(2,Math.min(200,+$('n').value||2))},(_,i)=>String(i+1));
  drawn=[];$('hist').textContent='—';$('res').textContent='?';draw()}
 function avail(){return $('norep').checked?items.filter(i=>!drawn.includes(i)):items}
-function draw(){const L=avail();x.clearRect(0,0,900,900);if(!L.length){x.fillStyle='#fff';x.font='40px sans-serif';x.textAlign='center';x.fillText('Tout le monde est passé',450,450);return}
+function draw(){const L=items;x.clearRect(0,0,900,900);
  const a=2*Math.PI/L.length;x.save();x.translate(R,R);x.rotate(ang);
- L.forEach((t,i)=>{x.beginPath();x.moveTo(0,0);x.arc(0,0,R-6,i*a,(i+1)*a);x.closePath();x.fillStyle=COL[i%COL.length];x.fill();x.strokeStyle='#0f1b2d';x.lineWidth=2;x.stroke();
-  x.save();x.rotate(i*a+a/2);x.fillStyle='#fff';x.textAlign='right';const fs=Math.max(14,Math.min(46,(R*a*0.55)));x.font='bold '+fs+'px sans-serif';x.textBaseline='middle';x.fillText(t.length>14?t.slice(0,13)+'…':t,R-26,0);x.restore()});
+ L.forEach((t,i)=>{const gone=$('norep').checked&&drawn.includes(t);x.beginPath();x.moveTo(0,0);x.arc(0,0,R-6,i*a,(i+1)*a);x.closePath();x.fillStyle=gone?'#3a4658':COL[i%COL.length];x.fill();x.strokeStyle='#0f1b2d';x.lineWidth=2;x.stroke();
+  x.save();x.rotate(i*a+a/2);x.fillStyle=gone?'#7d8aa0':'#fff';x.textAlign='right';const fs=Math.max(14,Math.min(46,(R*a*0.55)));x.font='bold '+fs+'px sans-serif';x.textBaseline='middle';x.fillText(t.length>14?t.slice(0,13)+'…':t,R-26,0);x.restore()});
  x.restore();x.beginPath();x.arc(R,R,34,0,7);x.fillStyle='#0f1b2d';x.fill()}
-function go(){if(spin)return;const L=avail();if(!L.length)return;spin=true;$('go').disabled=true;
- const a=2*Math.PI/L.length,k=Math.floor(Math.random()*L.length);
- // le pointeur est en haut (angle -90°) : le centre du secteur k doit s'y trouver
+function go(){if(spin)return;const A=avail();if(!A.length){$('res').textContent='Fin';return}spin=true;$('go').disabled=true;
+ const L=items,a=2*Math.PI/L.length,w=A[Math.floor(Math.random()*A.length)],k=L.indexOf(w);
  const target=-Math.PI/2-(k*a+a/2);const cur=ang%(2*Math.PI);let d=target-cur;d=((d%(2*Math.PI))+2*Math.PI)%(2*Math.PI);
  const total=d+2*Math.PI*(5+Math.floor(Math.random()*3)),t0=performance.now(),dur=5200,a0=ang;
  (function f(now){const p=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-p,4);ang=a0+total*e;draw();
-  if(p<1)requestAnimationFrame(f);else{const w=L[k];drawn.push(w);$('res').textContent=w;
-   $('hist').innerHTML=drawn.map(s=>'<span>'+s.replace(/</g,'&lt;')+'</span>').join('');spin=false;$('go').disabled=false;setTimeout(draw,50)}})(t0)}
+  if(p<1)requestAnimationFrame(f);else{drawn.push(w);$('res').textContent=w;
+   $('hist').innerHTML=drawn.map(s=>'<span>'+s.replace(/</g,'&lt;')+'</span>').join('');spin=false;$('go').disabled=false}})(t0)}
 $('go').onclick=go;$('reset').onclick=build;$('n').oninput=build;$('names').oninput=build;$('norep').onchange=draw;build();
 </script></body></html>
