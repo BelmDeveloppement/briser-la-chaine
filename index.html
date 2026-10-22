@@ -16,7 +16,12 @@ input{font-size:18px;padding:12px;border-radius:10px;border:1px solid #2a4a85;ba
 table{width:100%;border-collapse:collapse}td,th{padding:8px;text-align:left;border-bottom:1px solid #2a4a85}
 .ok{color:var(--g)}.ko{color:var(--r)}.tm{font-size:56px;font-weight:800}
 .chip{display:inline-block;padding:2px 10px;border-radius:99px;background:#2a4a85;margin:2px}
-.gone{opacity:.5;text-decoration:line-through}
+.gone{opacity:.75}.gone td:first-child{text-decoration:line-through}
+.ban{border-radius:14px;padding:18px 12px;text-align:center;font-size:30px;font-weight:900;letter-spacing:1px;margin:12px 0;color:#fff}
+.ban.g{background:#17a35a}.ban.r{background:#d6304d}.ban small{display:block;font-size:15px;font-weight:600;letter-spacing:0;margin-top:4px;opacity:.95}
+.bd{display:inline-block;padding:3px 10px;border-radius:8px;font-weight:800;color:#fff}.bd.g{background:#17a35a}.bd.r{background:#d6304d}
+.mk{font-size:22px;font-weight:900;text-align:center}.mk.g{color:#2fe38a}.mk.r{color:#ff4d6d}.mk.n{color:#7d8fb3}
+.grid2{overflow-x:auto}.grid2 table td,.grid2 table th{padding:6px 8px;text-align:center}.grid2 td:first-child,.grid2 th:first-child{text-align:left;white-space:nowrap}
 </style></head><!-- © 2026 SAS BELM DEVELOPPEMENT. Tous droits réservés. Reproduction interdite sans autorisation. -->
 <body><div class="w" id="app"></div><div style="text-align:center;color:#9DB4E0;font-size:12px;padding:16px">© 2026 SAS BELM DEVELOPPEMENT. Tous droits réservés. ATT&amp;CK® est une marque de The MITRE Corporation ; jeu non affilié à MITRE.</div>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -46,6 +51,11 @@ function Client(code,onMsg){
   const ready=new Promise((ok,ko)=>{peer.on('open',()=>{c=peer.connect('BC-'+code,{reliable:true});c.on('open',ok);c.on('data',onMsg);c.on('close',()=>onMsg({t:'lost'}))});peer.on('error',ko)});
   return {send:msg=>c&&c.open&&c.send(msg),ready}
 }
+function marksTable(rows,n){
+  const mk=v=>v===1?'<span class="mk g">✔</span>':v===0?'<span class="mk r">✖</span>':'<span class="mk n">–</span>';
+  let h='<div class="grid2"><table><tr><th>Équipe</th>'+Array.from({length:n},(_,k)=>'<th>'+(k+1)+'</th>').join('')+'<th>Barr.</th><th>Impact</th><th>Score</th></tr>';
+  rows.forEach(r=>{h+='<tr class="'+(r.out?'gone':'')+'"><td>'+(r.out?'☠ ':'')+esc(r.nom)+'</td>'+Array.from({length:n},(_,k)=>'<td>'+mk(r.marks[k])+'</td>').join('')+'<td>'+r.bar+'</td><td>'+r.imp+'</td><td><b>'+r.score+'</b></td></tr>'});
+  return h+'</table></div>'}
 function expl(c){return `<p>${esc(c.exp)}</p>
 <div style="border-left:4px solid var(--g);padding:2px 10px;margin:8px 0"><b>Pourquoi cette station</b><br>${esc(c.ind)}</div>
 <div style="border-left:4px solid var(--y);padding:2px 10px;margin:8px 0"><b>Piège à éviter</b><br>${esc(c.pie)}</div>
@@ -93,10 +103,10 @@ function onPlayer(id,m){
   if(m.t==='ans'&&G.phase==='ask'&&G.teams[id]&&!G.teams[id].out){G.answers[id]=m.st;hostView()}
 }
 function cur(){return SC.find(s=>s.id==G.sc).constats[G.i]}
-function start(){if(!G.sc||!G.order.length){lobbyBtn();return}G.phase='next';G.i=-1;G.order.forEach(i=>Object.assign(G.teams[i],{bar:0,imp:0,out:0}));next()}
+function start(){if(!G.sc||!G.order.length){lobbyBtn();return}G.hist={};G.phase='next';G.i=-1;G.order.forEach(i=>Object.assign(G.teams[i],{bar:0,imp:0,out:0}));next()}
 function next(){
   const s=SC.find(x=>x.id==G.sc);G.i++;G.answers={};
-  if(G.i>=s.constats.length){G.phase='end';hostView();H.broadcast({t:'end',res:ranking()});return}
+  if(G.i>=s.constats.length){G.phase='end';hostView();H.broadcast({t:'end',res:ranking(),n:SC.find(x=>x.id==G.sc).constats.length});return}
   G.phase='ask';G.t0=Date.now();hostView();
   H.broadcast({t:'ask',n:G.i+1,of:s.constats.length,txt:cur().txt,secs:SECS});
   clearInterval(G.tm);G.tm=setInterval(tick,250);
@@ -107,14 +117,14 @@ function reveal(){
   clearInterval(G.tm);const c=cur(),res={};
   live().forEach(i=>{const t=G.teams[i],a=G.answers[i],r={ans:a||null};
     if(a===c.st){t.bar++;r.ok=1}else{r.ok=0;r.d6=1+Math.floor(Math.random()*6);r.hit=r.d6>=3;if(r.hit){r.dmg=c.st>=11?2:1;t.imp+=r.dmg;if(t.imp>=SEUIL){t.out=1;r.out=1}}}
-    r.bar=t.bar;r.imp=t.imp;res[i]=r});
+    r.bar=t.bar;r.imp=t.imp;res[i]=r;(G.hist[i]=G.hist[i]||[])[G.i]=r.ok?1:0});
   G.res=res;G.phase='rev';hostView();
   G.order.forEach(i=>H.send(i,{t:'rev',st:c.st,stn:ST[c.st].nom,exp:c.exp,tech:c.tech,ind:c.ind,pie:c.pie,but:c.but,det:c.det,pro:c.pro,r:res[i]||null,last:G.i>=SC.find(x=>x.id==G.sc).constats.length-1}));
 }
 function syncOne(id){
   if(G.phase==='ask'){const s=SC.find(x=>x.id==G.sc);H.send(id,{t:'ask',n:G.i+1,of:s.constats.length,txt:cur().txt,secs:Math.max(0,SECS-Math.floor((Date.now()-G.t0)/1000))})}
 }
-function ranking(){return G.order.map(i=>{const t=G.teams[i];return{nom:t.nom,bar:t.bar,imp:t.imp,out:t.out,score:t.bar-t.imp}}).sort((a,b)=>a.out-b.out||b.score-a.score)}
+function ranking(){return G.order.map(i=>{const t=G.teams[i];return{nom:t.nom,bar:t.bar,imp:t.imp,out:t.out,score:t.bar-t.imp,marks:(G.hist&&G.hist[i])||[]}}).sort((a,b)=>a.out-b.out||b.score-a.score)}
 function hostView(){
   if(!H||G.phase==='lobby')return;
   const s=SC.find(x=>x.id==G.sc),c=G.i>=0&&G.i<s.constats.length?cur():null;
@@ -127,14 +137,15 @@ function hostView(){
     <div class="card" style="color:var(--m)">Placez le pion Attaquant après la révélation. Station attendue : <b>${c.st}. ${ST[c.st].nom}</b> (visible par l’animateur seulement).</div>`;
   }else if(G.phase==='rev'){
     h+=`<div class="card"><div style="color:var(--m)">Constat ${G.i+1} / ${s.constats.length}</div><div class="big">${esc(c.txt)}</div>
-    <h2 class="ok">Station ${c.st} : ${ST[c.st].nom} (${ST[c.st].id})</h2>${expl(c)}
+    <h2 class="ok">Station ${c.st} : ${ST[c.st].nom} (${ST[c.st].id})</h2><div class="row" style="margin:6px 0"><span class="bd g">${Object.values(G.res).filter(r=>r.ok).length} BONNE(S) RÉPONSE(S)</span><span class="bd r">${Object.values(G.res).filter(r=>!r.ok).length} MAUVAISE(S) RÉPONSE(S)</span></div>${expl(c)}
     <p><b>Pion Attaquant</b> sur la station ${c.st}. Barrières sur la station pour les équipes justes.</p>
     <table><tr><th>Équipe</th><th>Réponse</th><th>Résultat</th><th>Barrières</th><th>Impact</th></tr>
     ${G.order.map(i=>{const t=G.teams[i],r=G.res[i];if(!r)return`<tr class="gone"><td>${esc(t.nom)}</td><td colspan=4>compromise</td></tr>`;
-      return`<tr><td>${esc(t.nom)}</td><td>${r.ans?r.ans+'. '+ST[r.ans].nom:'—'}</td><td>${r.ok?'<span class=ok>Juste → Barrière</span>':'<span class=ko>Faux, dé '+r.d6+' : '+(r.hit?'+'+r.dmg+' Impact':'attaque repoussée')+(r.out?' ☠ COMPROMISE':'')+'</span>'}</td><td>${r.bar}</td><td>${r.imp}/${SEUIL}</td></tr>`}).join('')}</table>
+      return`<tr><td>${esc(t.nom)}</td><td>${r.ans?r.ans+'. '+ST[r.ans].nom:'—'}</td><td>${r.ok?'<span class="bd g">BONNE RÉPONSE</span> → Barrière':'<span class="bd r">MAUVAISE RÉPONSE</span> dé '+r.d6+' : '+(r.hit?'+'+r.dmg+' Impact':'attaque repoussée')+(r.out?' ☠ COMPROMISE':'')}</td><td>${r.bar}</td><td>${r.imp}/${SEUIL}</td></tr>`}).join('')}</table>
     <div class="row" style="margin-top:12px"><button onclick="next()">${G.i>=s.constats.length-1?'Voir le classement':'Constat suivant'}</button></div></div>`;
   }else if(G.phase==='end'){
-    h+=`<div class="card"><h2>Classement final</h2><table><tr><th>#</th><th>Équipe</th><th>Barrières</th><th>Impact</th><th>Score</th></tr>${ranking().map((r,k)=>`<tr class="${r.out?'gone':''}"><td>${r.out?'☠':k+1}</td><td>${esc(r.nom)}</td><td>${r.bar}</td><td>${r.imp}</td><td><b>${r.score}</b></td></tr>`).join('')}</table>
+    h+=`<div class="card"><h2>Récapitulatif et classement final</h2>${marksTable(ranking(),s.constats.length)}
+    <p style="color:var(--m)">✔ bonne réponse · ✖ mauvaise réponse ou pas de réponse · – équipe déjà compromise. Colonnes : numéro du Constat.</p>
     <p style="color:var(--m)">Score = Barrières − Impact. Une équipe à ${SEUIL} d’Impact est compromise et sort du classement.</p>
     <h3>Rappel de la chaîne d’attaque</h3><ol>${s.constats.map(x=>`<li>${esc(x.txt)}<br><b>${x.st}. ${ST[x.st].nom}</b> <span style="color:var(--m)">(${x.tech})</span></li>`).join('')}</ol>
     <button onclick="location.reload()">Nouvelle partie</button></div>`;
@@ -173,13 +184,13 @@ function ask(){
 function pick(n){P.sel=n;C.send({t:'ans',st:n});ask()}
 function rev(m){
   const r=m.r;let h=`<div style="color:var(--m)">${esc(P.nom)}</div>`;
-  if(!r)h+=`<div class="card ko"><h2>Votre équipe est compromise</h2></div>`;
-  else if(r.ok)h+=`<div class="card"><h2 class="ok">Juste ! +1 Barrière</h2></div>`;
-  else h+=`<div class="card"><h2 class="ko">${r.ans?'Pas la bonne station':'Pas de réponse'}</h2><p>Dé : <b style="font-size:28px">${r.d6}</b> → ${r.hit?'<b class=ko>+'+r.dmg+' Impact</b>':'<b class=ok>attaque repoussée</b>'}${r.out?'<br><b class=ko>☠ Votre équipe est compromise</b>':''}</p></div>`;
+  if(!r)h+=`<div class="ban r">ÉQUIPE COMPROMISE ☠</div>`;
+  else if(r.ok)h+=`<div class="ban g">✔ BONNE RÉPONSE<small>+1 Barrière : posez un jeton sur la station</small></div>`;
+  else h+=`<div class="ban r">✖ MAUVAISE RÉPONSE<small>${r.ans?'Vous aviez choisi : '+r.ans+'. '+esc(ST[r.ans].nom):'Pas de réponse envoyée'}</small></div><div class="card"><p>Dé : <b style="font-size:28px">${r.d6}</b> → ${r.hit?'<b class=ko>+'+r.dmg+' Impact</b>':'<b class=ok>attaque repoussée</b>'}${r.out?'<br><b class=ko>☠ Votre équipe est compromise</b>':''}</p></div>`;
   h+=`<div class="card"><div style="color:var(--m)">Bonne réponse</div><h2>${m.st}. ${esc(m.stn)}</h2>${expl(m)}</div>`;
   if(r)h+=`<div class="card">Barrières <b>${r.bar}</b> · Impact <b>${r.imp}/4</b></div>`;
   A.innerHTML=h+'<p style="color:var(--m)">En attente du constat suivant…</p>';
 }
-function end(m){A.innerHTML=`<h1>Classement</h1><div class="card"><table>${m.res.map((r,k)=>`<tr class="${r.out?'gone':''}"><td>${r.out?'☠':k+1}</td><td>${esc(r.nom)}</td><td><b>${r.score}</b></td></tr>`).join('')}</table></div>`}
+function end(m){A.innerHTML=`<h1>Récapitulatif</h1><div class="card">${marksTable(m.res,m.n)}<p style="color:var(--m);font-size:13px">✔ bonne réponse · ✖ mauvaise · – compromise. Colonnes : numéro du Constat.</p></div>`}
 home();
 </script></body></html>
