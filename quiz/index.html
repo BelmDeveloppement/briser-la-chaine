@@ -1,0 +1,163 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quiz en direct</title>
+<meta name="copyright" content="© 2026 SAS BELM DEVELOPPEMENT. Tous droits réservés.">
+<style>
+:root{--bg:#0B1730;--p:#13264A;--l:#6E94DA;--t:#EAF1FF;--m:#9DB4E0;--g:#4BE08B;--r:#FF5470;--y:#FFC857}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:16px/1.45 system-ui,sans-serif;min-height:100vh}
+.w{max-width:1100px;margin:0 auto;padding:16px}h1{margin:0;font-size:28px}h1 b{color:var(--y)}h2{margin:.2em 0}
+.card{background:var(--p);border:1px solid #2a4a85;border-radius:14px;padding:16px;margin:12px 0}
+button{background:var(--g);color:#052;border:0;border-radius:10px;padding:12px 18px;font-size:16px;font-weight:700;cursor:pointer}
+button.s{background:#2a4a85;color:var(--t)}button:disabled{opacity:.4}
+input{font-size:18px;padding:12px;border-radius:10px;border:1px solid #2a4a85;background:#0B1730;color:var(--t);width:100%}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.tm{font-size:56px;font-weight:800}
+.chip{display:inline-block;padding:2px 10px;border-radius:99px;background:#2a4a85;margin:2px}
+.q{font-size:30px;font-weight:800;line-height:1.3;margin:6px 0 14px}
+.opt{display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;background:#0B1730;border:2px solid #2a4a85;border-radius:12px;margin:10px 0;padding:12px 14px;font-size:22px;font-weight:600;text-align:left;width:100%;color:var(--t)}
+.opt .bar{position:absolute;left:0;top:0;bottom:0;background:#2f5fb8;opacity:.55;width:0;transition:width .5s}
+.opt .lt{z-index:1;width:36px;height:36px;border-radius:50%;background:#2a4a85;display:flex;align-items:center;justify-content:center;font-weight:900;flex:none}
+.opt .tx{z-index:1;flex:1}.opt .n{z-index:1;font-size:26px;font-weight:900}
+.opt.good{border-color:var(--g)}.opt.good .bar{background:#17a35a;opacity:.7}.opt.bad{opacity:.55}
+.opt.sel{border-color:var(--y);background:#2a3d6e}
+.ban{border-radius:14px;padding:18px 12px;text-align:center;font-size:30px;font-weight:900;letter-spacing:1px;margin:12px 0;color:#fff}
+.ban.g{background:#17a35a}.ban.r{background:#d6304d}.ban.n{background:#2a4a85}.ban small{display:block;font-size:15px;font-weight:600;letter-spacing:0;margin-top:4px;opacity:.95}
+.ex{border-left:4px solid var(--g);padding:4px 12px;margin:10px 0;font-size:18px}
+.hint{border-left:4px solid var(--y);padding:4px 12px;margin:10px 0;font-size:18px}
+table{width:100%;border-collapse:collapse}td,th{padding:8px;text-align:center;border-bottom:1px solid #2a4a85}td:first-child,th:first-child{text-align:left}
+.mk{font-size:22px;font-weight:900}.mk.g{color:#2fe38a}.mk.r{color:#ff4d6d}.mk.n{color:#7d8fb3}
+.pb{height:8px;background:#2a4a85;border-radius:6px;margin:6px 0 12px}.pb i{display:block;height:8px;background:var(--y);border-radius:6px}
+.ko{color:var(--r)}.ok{color:var(--g)}
+</style></head><!-- © 2026 SAS BELM DEVELOPPEMENT. Tous droits réservés. Reproduction interdite sans autorisation. -->
+<body><div class="w" id="app"></div><div style="text-align:center;color:#9DB4E0;font-size:12px;padding:16px">© 2026 SAS BELM DEVELOPPEMENT. Tous droits réservés. ATT&amp;CK® est une marque de The MITRE Corporation ; support non affilié à MITRE.</div>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+const SETS={"atk": {"titre": "QCM ATT&CK", "qs": [{"q": "Que représente une « tactique » dans MITRE ATT&CK ?", "o": ["Un outil utilisé par l’attaquant", "Un objectif stratégique de l’attaquant", "Une vulnérabilité", "Un groupe d’attaquants"], "ok": 1, "ind": "Pensez à la question « pourquoi ? » : la tactique est le but, la technique est le moyen.", "exp": "La tactique est le « pourquoi » (ex. Credential Access). L’outil relève d’une procédure ; la vulnérabilité relève d’une CVE."}, {"q": "Quelle technique correspond au vol d’identifiants dans la mémoire du processus LSASS ?", "o": ["T1059", "T1003.001", "T1547", "T1566"], "ok": 1, "ind": "Le vol d’identifiants est dans la tactique Credential Access. T1003 est « OS Credential Dumping ».", "exp": "T1003.001 = OS Credential Dumping : LSASS Memory. T1059 est l’interpréteur de commandes, T1547 la persistance au démarrage, T1566 l’hameçonnage."}, {"q": "Quel usage est typique d’ATT&CK dans un SOC ?", "o": ["Créer des virus", "Cartographier ses alertes et mesurer sa couverture de détection", "Mesurer les performances du réseau", "Chiffrer les sauvegardes"], "ok": 1, "ind": "Un SOC détecte : à quoi sert une carte des techniques que l’on sait (ou non) détecter ?", "exp": "On rattache chaque règle ou alerte à une technique pour voir les trous de couverture (layer Navigator)."}, {"q": "Quelle est la différence entre une technique et une sous-technique ?", "o": ["La sous-technique est une variante plus précise d’une technique", "La technique est plus rare", "La sous-technique est un outil", "Il n’y a aucune différence"], "ok": 0, "ind": "Regardez les identifiants : T1003 et T1003.001. Que signifie le « .001 » ?", "exp": "Exemple : T1003 (technique générale) et T1003.001 LSASS Memory (sous-technique, une façon précise de la réaliser)."}, {"q": "Quel outil permet de visualiser la matrice ATT&CK et d’annoter des techniques ?", "o": ["Nmap", "ATT&CK Navigator", "Wireshark", "Nessus"], "ok": 1, "ind": "Un seul de ces quatre outils colore des techniques sur la matrice. Les autres scannent ou capturent.", "exp": "Navigator permet de créer des layers (couleurs, scores, commentaires). Nmap scanne des ports, Wireshark capture le trafic, Nessus cherche des vulnérabilités."}]}, "final": {"titre": "QCM final du module", "qs": [{"q": "Dans ATT&CK, « Credential Access » est :", "o": ["une technique", "une tactique", "un groupe d’attaquants", "un outil"], "ok": 1, "ind": "Il y a 15 éléments de ce type dans la matrice Enterprise, avec un identifiant en TA.", "exp": "Credential Access est la tactique TA0006 ; T1003 en est une technique."}, {"q": "Dans STRIDE, la lettre R (Repudiation) correspond à la violation de :", "o": ["la confidentialité", "l’intégrité", "la non-répudiation", "la disponibilité"], "ok": 2, "ind": "Chaque lettre de STRIDE viole une propriété de sécurité. Que signifie « répudier » une action ?", "exp": "Repudiation ↔ non-répudiation : on peut nier avoir fait une action faute de preuve."}, {"q": "Dans un arbre d’attaque, un nœud OU a pour coût :", "o": ["le minimum de ses enfants", "la somme de ses enfants", "le maximum de ses enfants", "la moyenne de ses enfants"], "ok": 0, "ind": "Pour un nœud OU, l’attaquant n’a besoin que d’une branche. Laquelle choisit-il ?", "exp": "L’attaquant prend la voie la moins chère : minimum. Pour un nœud ET, on additionne."}, {"q": "Quel indicateur dit qu’une vulnérabilité est déjà exploitée dans la nature ?", "o": ["CVSS", "KEV", "CWE", "CPE"], "ok": 1, "ind": "CVSS note la gravité technique, CWE classe les faiblesses, CPE identifie un produit. Un seul signale l’exploitation.", "exp": "Le catalogue KEV (Known Exploited Vulnerabilities) de la CISA recense les CVE exploitées."}, {"q": "ISO/IEC 27005 est :", "o": ["un catalogue de mesures de sécurité", "la norme des exigences du SMSI", "des lignes directrices de gestion des risques", "un référentiel de vulnérabilités"], "ok": 2, "ind": "Dans la famille 27000 : 27001 = exigences, 27002 = mesures. Et 27005 ?", "exp": "27001 = exigences du SMSI, 27002 = catalogue de mesures, 27005 = gestion des risques."}]}};
+const $=s=>document.querySelector(s),A=$('#app');
+const qs=new URLSearchParams(location.search),MOCK=qs.get('t')==='bc';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const L='ABCDEF';
+/* ---- transport (PeerJS, ou BroadcastChannel pour les tests) ---- */
+function Host(code,onMsg){
+  const conns={};
+  if(MOCK){const ch=new BroadcastChannel('qz-'+code);ch.onmessage=e=>{const m=e.data;if(m.to==='host'){conns[m.from]=1;onMsg(m.from,m.msg)}};
+    return {send:(to,msg)=>ch.postMessage({to,msg}),broadcast:msg=>ch.postMessage({to:'*',msg}),ready:Promise.resolve()}}
+  const peer=new Peer('QZ-'+code);
+  const ready=new Promise((ok,ko)=>{peer.on('open',ok);peer.on('error',ko)});
+  peer.on('connection',c=>{c.on('open',()=>{conns[c.peer]=c});c.on('data',d=>onMsg(c.peer,d));c.on('close',()=>{onMsg(c.peer,{t:'bye'});delete conns[c.peer]})});
+  return {send:(to,msg)=>conns[to]&&conns[to].send(msg),broadcast:msg=>Object.values(conns).forEach(c=>c.send(msg)),ready}
+}
+function Client(code,onMsg){
+  const me='p'+Math.random().toString(36).slice(2,8);
+  if(MOCK){const ch=new BroadcastChannel('qz-'+code);ch.onmessage=e=>{const m=e.data;if(m.to===me||m.to==='*')onMsg(m.msg)};
+    return {send:msg=>ch.postMessage({to:'host',from:me,msg}),ready:Promise.resolve()}}
+  const peer=new Peer();let c;
+  const ready=new Promise((ok,ko)=>{peer.on('open',()=>{c=peer.connect('QZ-'+code,{reliable:true});c.on('open',ok);c.on('data',onMsg);c.on('close',()=>onMsg({t:'lost'}))});peer.on('error',ko)});
+  return {send:msg=>c&&c.open&&c.send(msg),ready}
+}
+/* ---- accueil ---- */
+function home(){
+  if(qs.get('room'))return join(qs.get('room').toUpperCase());
+  A.innerHTML=`<h1>QUIZ <b>EN DIRECT</b></h1><p style="color:var(--m)">Les étudiants répondent sur leur téléphone, les résultats s’affichent en direct sur l’écran de l’animateur.</p>
+  <div class="card"><h2>Animateur</h2><p>Choisissez le quiz, puis projetez la page.</p>${Object.keys(SETS).map(k=>`<p><button onclick="hostSetup('${k}')">${esc(SETS[k].titre)} (${SETS[k].qs.length} questions)</button></p>`).join('')}</div>
+  <div class="card"><h2>Étudiant</h2><p>Scannez le QR code, ou saisissez le code affiché au tableau.</p><div class="row"><input id="code" maxlength="8" placeholder="Code (ex. K3F9)" style="max-width:260px"><button onclick="join($('#code').value.trim().toUpperCase())">Rejoindre</button></div></div>`;
+}
+/* ---- animateur ---- */
+let H,G;
+function hostSetup(k){
+  const code=Math.random().toString(36).slice(2,6).toUpperCase();
+  G={code,k,set:SETS[k],pl:{},order:[],i:-1,phase:'lobby',hint:false};
+  H=Host(code,onPlayer);A.innerHTML='<p>Connexion…</p>';
+  H.ready.then(lobby,e=>{A.innerHTML='<div class="card ko">Connexion impossible ('+esc(e.type||e)+'). Essayez le partage de connexion du téléphone de l’animateur.</div>'});
+}
+function joinURL(){return location.origin+location.pathname+'?room='+G.code+(MOCK?'&t=bc':'')}
+function lobby(){
+  G.phase='lobby';const url=joinURL();
+  A.innerHTML=`<h1>${esc(G.set.titre)}</h1><div class="row" style="align-items:flex-start">
+  <div class="card" style="flex:1;min-width:280px"><div style="color:var(--m)">Code</div><div class="tm" style="letter-spacing:6px">${G.code}</div>
+  <div id="qr"></div><div style="word-break:break-all;color:var(--m);font-size:13px">${esc(url)}</div></div>
+  <div class="card" style="flex:2;min-width:280px"><h2>Participants connectés (<span id="np">0</span>)</h2><div id="tl"></div>
+  <p><button id="go" onclick="nextQ()" disabled>Lancer le quiz</button></p></div></div>`;
+  const e=$('#qr');e.innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data=${encodeURIComponent(url)}" width="240" height="240" alt="QR" style="background:#fff;border-radius:10px;margin-top:8px" onerror="this.replaceWith(document.createTextNode('QR indisponible : saisir le code'))">`;
+  lobbyList();
+}
+function lobbyList(){const t=$('#tl');if(!t)return;t.innerHTML=G.order.length?G.order.map(i=>`<span class="chip">${esc(G.pl[i].nom)}</span>`).join(''):'<i style="color:var(--m)">En attente des participants…</i>';$('#np').textContent=G.order.length;const b=$('#go');if(b)b.disabled=!G.order.length}
+function curQ(){return G.set.qs[G.i]}
+function counts(){const q=curQ(),c=q.o.map(()=>0);G.order.forEach(i=>{const a=G.pl[i].ans[G.i];if(a!=null)c[a]++});return c}
+function answered(){return G.order.filter(i=>G.pl[i].ans[G.i]!=null).length}
+function onPlayer(id,m){
+  if(m.t==='bye'){if(G.pl[id])G.pl[id].off=1;return}
+  if(m.t==='hello'){
+    let k=G.order.find(i=>G.pl[i].nom.toLowerCase()===m.nom.toLowerCase());
+    if(k&&k!==id){G.pl[id]=G.pl[k];delete G.pl[k];G.order[G.order.indexOf(k)]=id}
+    else if(!k){G.pl[id]={nom:m.nom,ans:{}};G.order.push(id)}
+    G.pl[id].off=0;H.send(id,{t:'ok',nom:m.nom});sync(id);
+    if(G.phase==='lobby')lobbyList();else view();return}
+  if(m.t==='ans'&&G.phase==='ask'&&G.pl[id]&&m.q===G.i){G.pl[id].ans[G.i]=m.a;view()}
+}
+function qmsg(){const q=curQ();return {t:'q',i:G.i,n:G.set.qs.length,q:q.q,o:q.o,ind:G.hint?q.ind:null}}
+function revmsg(id){const q=curQ(),a=G.pl[id].ans[G.i];return {t:'rev',i:G.i,ok:a===q.ok,a,correct:q.ok,exp:q.exp,score:score(id),n:G.set.qs.length}}
+function score(id){return G.set.qs.reduce((s,q,k)=>s+(G.pl[id].ans[k]===q.ok?1:0),0)}
+function sync(id){
+  if(G.phase==='ask'){H.send(id,qmsg());const a=G.pl[id].ans[G.i];if(a!=null)H.send(id,{t:'mine',i:G.i,a})}
+  else if(G.phase==='rev')H.send(id,revmsg(id));
+  else if(G.phase==='end')H.send(id,endmsg(id));
+  else H.send(id,{t:'wait'})}
+function nextQ(){G.i++;G.hint=false;if(G.i>=G.set.qs.length){G.phase='end';G.order.forEach(i=>H.send(i,endmsg(i)));return view()}G.phase='ask';H.broadcast(qmsg());view()}
+function showHint(){G.hint=true;H.broadcast({t:'hint',i:G.i,ind:curQ().ind});view()}
+function reveal(){G.phase='rev';G.order.forEach(i=>H.send(i,revmsg(i)));view()}
+function endmsg(id){const r=rank();return {t:'end',score:score(id),n:G.set.qs.length,rang:r.findIndex(x=>x.id===id)+1,tot:r.length}}
+function rank(){return G.order.map(i=>({id:i,nom:G.pl[i].nom,s:score(i)})).sort((a,b)=>b.s-a.s||a.nom.localeCompare(b.nom))}
+function view(){
+  if(G.phase==='lobby')return;
+  if(G.phase==='end')return endView();
+  const q=curQ(),c=counts(),tot=G.order.length,ans=answered(),mx=Math.max(1,...c),rev=G.phase==='rev';
+  A.innerHTML=`<div class="row" style="justify-content:space-between"><h2>${esc(G.set.titre)} · question ${G.i+1} / ${G.set.qs.length}</h2><div><span class="chip">${ans} / ${tot} réponses</span> <span class="chip">code ${G.code}</span></div></div>
+  <div class="pb"><i style="width:${tot?100*ans/tot:0}%"></i></div>
+  <div class="q">${esc(q.q)}</div>
+  ${q.o.map((o,k)=>`<div class="opt ${rev?(k===q.ok?'good':'bad'):''}"><div class="bar" style="width:${100*c[k]/Math.max(mx,tot?ans:1)}%"></div><div class="lt">${L[k]}</div><div class="tx">${esc(o)}</div><div class="n">${c[k]}</div></div>`).join('')}
+  ${G.hint&&!rev?`<div class="hint"><b>Indice</b> : ${esc(q.ind)}</div>`:''}
+  ${rev?`<div class="ban ${ans&&c[q.ok]===ans?'g':'n'}">${c[q.ok]} / ${ans} ont bien répondu<small>Bonne réponse : ${L[q.ok]}</small></div><div class="ex"><b>Explication</b><br>${esc(q.exp)}</div>`:''}
+  <div class="row">${rev?`<button onclick="nextQ()">${G.i+1>=G.set.qs.length?'Voir la synthèse':'Question suivante'}</button>`:`<button class="s" onclick="showHint()" ${G.hint?'disabled':''}>Donner l’indice</button><button onclick="reveal()">Révéler la réponse</button>`}</div>`;
+}
+function endView(){
+  const r=rank(),n=G.set.qs.length;
+  const rate=G.set.qs.map((q,k)=>{const a=G.order.filter(i=>G.pl[i].ans[k]!=null);return a.length?Math.round(100*a.filter(i=>G.pl[i].ans[k]===q.ok).length/G.order.length):0});
+  const mk=(id,k)=>{const a=G.pl[id].ans[k];return a==null?'<span class="mk n">–</span>':a===G.set.qs[k].ok?'<span class="mk g">✔</span>':'<span class="mk r">✖</span>'};
+  A.innerHTML=`<h1>Synthèse · ${esc(G.set.titre)}</h1><div class="card"><table><tr><th>Participant</th>${G.set.qs.map((_,k)=>`<th>Q${k+1}</th>`).join('')}<th>Score</th></tr>
+  ${r.map(x=>`<tr><td>${esc(x.nom)}</td>${G.set.qs.map((_,k)=>`<td>${mk(x.id,k)}</td>`).join('')}<td><b>${x.s} / ${n}</b></td></tr>`).join('')}
+  <tr><td><i>Réussite</i></td>${rate.map(v=>`<td><b class="${v>=70?'ok':v<40?'ko':''}">${v} %</b></td>`).join('')}<td></td></tr></table></div>
+  <div class="row"><button class="s" onclick="lobby()">Retour au lobby</button><button class="s" onclick="G.i=-1;G.order.forEach(i=>G.pl[i].ans={});lobby()">Rejouer (mêmes participants)</button></div>`;
+}
+/* ---- étudiant ---- */
+let C,S={};
+function join(code){
+  if(!code){return}
+  A.innerHTML=`<h1>QUIZ <b>EN DIRECT</b></h1><div class="card"><h2>Code ${esc(code)}</h2><p>Votre prénom (ou équipe) :</p><input id="nom" maxlength="24" autocomplete="off"><p><button onclick="go('${esc(code)}')">Entrer</button></p></div>`;
+}
+function go(code){
+  const nom=$('#nom').value.trim();if(!nom)return;
+  A.innerHTML='<p>Connexion…</p>';S={nom,code};
+  C=Client(code,onHost);
+  C.ready.then(()=>C.send({t:'hello',nom}),e=>{A.innerHTML='<div class="card ko">Connexion impossible. Vérifiez le code ou le réseau.</div>'});
+}
+function st(h){A.innerHTML=`<div class="row" style="justify-content:space-between"><b>${esc(S.nom)}</b><span class="chip">code ${esc(S.code)}</span></div>`+h}
+function onHost(m){
+  if(m.t==='ok'||m.t==='wait')return st('<div class="card"><h2>Connecté</h2><p>Attendez la première question…</p></div>');
+  if(m.t==='lost')return st('<div class="card ko">Connexion perdue. Rechargez la page et saisissez le même prénom pour reprendre.</div>');
+  if(m.t==='q'){S.q=m;S.sel=null;S.rev=false;return qView()}
+  if(m.t==='mine'&&S.q&&m.i===S.q.i){S.sel=m.a;return qView()}
+  if(m.t==='hint'&&S.q&&m.i===S.q.i){S.q.ind=m.ind;return qView()}
+  if(m.t==='rev'){S.q=S.q||{i:m.i,q:'',o:[]};S.r=m;S.rev=true;return rView()}
+  if(m.t==='end')return st(`<div class="ban n">Quiz terminé<small>Votre score : ${m.score} / ${m.n} · rang ${m.rang} sur ${m.tot}</small></div>`);
+}
+function qView(){
+  const q=S.q;st(`<div class="pb"><i style="width:${100*(q.i+1)/q.n}%"></i></div><div style="color:var(--m)">Question ${q.i+1} / ${q.n}</div><div class="q" style="font-size:22px">${esc(q.q)}</div>`+
+  q.o.map((o,k)=>`<button class="opt ${S.sel===k?'sel':''}" onclick="pick(${k})"><div class="lt">${L[k]}</div><div class="tx">${esc(o)}</div></button>`).join('')+
+  (q.ind?`<div class="hint"><b>Indice</b> : ${esc(q.ind)}</div>`:'')+(S.sel!=null?'<p style="color:var(--m)">Réponse envoyée. Vous pouvez la changer jusqu’à la correction.</p>':''));
+}
+function pick(k){S.sel=k;C.send({t:'ans',q:S.q.i,a:k});qView()}
+function rView(){
+  const r=S.r,q=S.q;
+  st(`<div class="ban ${r.a==null?'n':r.ok?'g':'r'}">${r.a==null?'PAS DE RÉPONSE':r.ok?'BONNE RÉPONSE':'MAUVAISE RÉPONSE'}<small>Bonne réponse : ${L[r.correct]}${q.o&&q.o[r.correct]?' · '+esc(q.o[r.correct]):''}</small></div><div class="ex"><b>Explication</b><br>${esc(r.exp)}</div><p style="color:var(--m)">Score actuel : ${r.score} / ${r.n}</p>`);
+}
+home();
+</script></body></html>
