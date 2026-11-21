@@ -1,5 +1,6 @@
 <!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Roue de tirage au sort</title>
+<title>Roue de tirage au sort · MITRE jeu 24</title>
+<meta name="copyright" content="© 2026 SAS BELM DEVELOPPEMENT. Tous droits réservés.">
 <style>
 :root{--bg:#0f1b2d;--card:#18283f;--tx:#f3f6fb;--m:#9fb0c8;--ac:#f5a623;--ok:#2fbf71}
 *{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Calibri,Arial,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh}
@@ -19,7 +20,7 @@ canvas{width:100%;height:auto;display:block}
 #hist{color:var(--m);font-size:15px}#hist span{display:inline-block;background:#0f1b2d;border-radius:6px;padding:2px 8px;margin:2px}
 .row{display:flex;gap:8px;align-items:center}.row label{margin:0}
 </style></head><body><div class="w">
-<div><h1>Roue de <b>tirage au sort</b></h1><p style="color:var(--m);margin:0 0 10px">Qui présente son support ? Faites tourner la roue.</p>
+<div><h1>Roue de <b>tirage au sort</b></h1><p style="color:var(--m);margin:0 0 10px">Qui présente son support ? Faites tourner la roue. À ouvrir sur le PC de l’enseignant (le téléphone n’est qu’un secours).</p>
 <div id="stage"><div id="ptr"></div><canvas id="c" width="900" height="900"></canvas></div>
 <div id="res">?</div></div>
 <div><div class="card"><label>Nombre d’étudiants</label><input id="n" type="number" min="2" max="200" value="24">
@@ -27,10 +28,11 @@ canvas{width:100%;height:auto;display:block}
 <div class="row"><input type="checkbox" id="norep" checked style="width:auto"><label for="norep">Ne pas retirer quelqu’un déjà tiré</label></div>
 <button id="go">Faire tourner</button><button class="s" id="reset">Réinitialiser</button></div>
 <div class="card"><b>Déjà tirés</b><div id="hist">—</div></div></div></div>
+<div style="text-align:center;color:#9fb0c8;font-size:12px;padding:12px">© 2026 SAS BELM DEVELOPPEMENT. Tous droits réservés. Jeu 24 « MITRE » : non affilié à The MITRE Corporation.</div>
 <script>
 const $=id=>document.getElementById(id),cv=$('c'),x=cv.getContext('2d'),R=450;
 let items=[],drawn=[],ang=0,spin=false;
-const COL=['#3b82f6','#10b981','#f59e0b','#ef4444','#ec4899','#8b5cf6','#14b8a6','#f97316'];
+const COL=['#56B4E9','#FF8A3D','#F0E442','#CC79A7','#0072B2','#E69F00','#9DB4E0','#D55E00'];const LIGHT=['#56B4E9','#F0E442','#E69F00','#9DB4E0','#FF8A3D'];
 function build(){const nm=$('names').value.split('\n').map(s=>s.trim()).filter(Boolean);
  items=nm.length?nm:Array.from({length:Math.max(2,Math.min(200,+$('n').value||2))},(_,i)=>String(i+1));
  drawn=[];$('hist').textContent='—';$('res').textContent='?';draw()}
@@ -38,7 +40,7 @@ function avail(){return $('norep').checked?items.filter(i=>!drawn.includes(i)):i
 function draw(){const L=items;x.clearRect(0,0,900,900);
  const a=2*Math.PI/L.length;x.save();x.translate(R,R);x.rotate(ang);
  L.forEach((t,i)=>{const gone=$('norep').checked&&drawn.includes(t);x.beginPath();x.moveTo(0,0);x.arc(0,0,R-6,i*a,(i+1)*a);x.closePath();x.fillStyle=gone?'#3a4658':COL[i%COL.length];x.fill();x.strokeStyle='#0f1b2d';x.lineWidth=2;x.stroke();
-  x.save();x.rotate(i*a+a/2);x.fillStyle=gone?'#7d8aa0':'#fff';x.textAlign='right';const fs=Math.max(14,Math.min(46,(R*a*0.55)));x.font='bold '+fs+'px sans-serif';x.textBaseline='middle';x.fillText(t.length>14?t.slice(0,13)+'…':t,R-26,0);x.restore()});
+  x.save();x.rotate(i*a+a/2);x.fillStyle=gone?'#9aa7bd':(LIGHT.includes(COL[i%COL.length])?'#04121f':'#fff');x.textAlign='right';const fs=Math.max(14,Math.min(46,(R*a*0.55)));x.font='bold '+fs+'px sans-serif';x.textBaseline='middle';x.fillText(t.length>14?t.slice(0,13)+'…':t,R-26,0);x.restore()});
  x.restore();x.beginPath();x.arc(R,R,34,0,7);x.fillStyle='#0f1b2d';x.fill()}
 function go(){if(spin)return;const A=avail();if(!A.length){$('res').textContent='Fin';return}spin=true;$('go').disabled=true;
  const L=items,a=2*Math.PI/L.length,w=A[Math.floor(Math.random()*A.length)],k=L.indexOf(w);

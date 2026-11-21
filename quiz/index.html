@@ -2,163 +2,234 @@
 <title>Quiz en direct</title>
 <meta name="copyright" content="© 2026 SAS BELM DEVELOPPEMENT. Tous droits réservés.">
 <style>
-:root{--bg:#0B1730;--p:#13264A;--l:#6E94DA;--t:#EAF1FF;--m:#9DB4E0;--g:#4BE08B;--r:#FF5470;--y:#FFC857}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:16px/1.45 system-ui,sans-serif;min-height:100vh}
+/* Palette accessible (daltonisme rouge-vert) : bleu = bon / actif, orange = problème, jaune = attention. Toujours un mot ou un symbole en plus. */
+:root{--bg:#0B1730;--p:#13264A;--t:#EAF1FF;--m:#B4C6EA;--ok:#56B4E9;--bad:#FF8A3D;--y:#F0E442;--ln:#3a5a99;--dk:#04121f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:16px/1.45 system-ui,Segoe UI,sans-serif;min-height:100vh}
 .w{max-width:1100px;margin:0 auto;padding:16px}h1{margin:0;font-size:28px}h1 b{color:var(--y)}h2{margin:.2em 0}
-.card{background:var(--p);border:1px solid #2a4a85;border-radius:14px;padding:16px;margin:12px 0}
-button{background:var(--g);color:#052;border:0;border-radius:10px;padding:12px 18px;font-size:16px;font-weight:700;cursor:pointer}
-button.s{background:#2a4a85;color:var(--t)}button:disabled{opacity:.4}
-input{font-size:18px;padding:12px;border-radius:10px;border:1px solid #2a4a85;background:#0B1730;color:var(--t);width:100%}
+.card{background:var(--p);border:1px solid var(--ln);border-radius:14px;padding:16px;margin:12px 0}
+button{background:var(--ok);color:var(--dk);border:0;border-radius:10px;padding:12px 18px;font-size:16px;font-weight:700;cursor:pointer}
+button.s{background:#2a4a85;color:var(--t)}button.sm{padding:6px 10px;font-size:14px}button:disabled{opacity:.4;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--y);outline-offset:2px}
+input,select,textarea{font-size:18px;padding:12px;border-radius:10px;border:1px solid var(--ln);background:var(--bg);color:var(--t);width:100%;font-family:inherit}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.tm{font-size:56px;font-weight:800}
 .chip{display:inline-block;padding:2px 10px;border-radius:99px;background:#2a4a85;margin:2px}
 .q{font-size:30px;font-weight:800;line-height:1.3;margin:6px 0 14px}
-.opt{display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;background:#0B1730;border:2px solid #2a4a85;border-radius:12px;margin:10px 0;padding:12px 14px;font-size:22px;font-weight:600;text-align:left;width:100%;color:var(--t)}
+.opt{display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;background:var(--bg);border:2px solid var(--ln);border-radius:12px;margin:10px 0;padding:12px 14px;font-size:22px;font-weight:600;text-align:left;width:100%;color:var(--t)}
 .opt .bar{position:absolute;left:0;top:0;bottom:0;background:#2f5fb8;opacity:.55;width:0;transition:width .5s}
-.opt .lt{z-index:1;width:36px;height:36px;border-radius:50%;background:#2a4a85;display:flex;align-items:center;justify-content:center;font-weight:900;flex:none}
+.opt .lt{z-index:1;min-width:36px;height:36px;border-radius:50%;background:#2a4a85;display:flex;align-items:center;justify-content:center;font-weight:900;flex:none}
 .opt .tx{z-index:1;flex:1}.opt .n{z-index:1;font-size:26px;font-weight:900}
-.opt.good{border-color:var(--g)}.opt.good .bar{background:#17a35a;opacity:.7}.opt.bad{opacity:.55}
+.opt.good{border:4px solid var(--ok)}.opt.good .bar{background:var(--ok);opacity:.45}.opt.bad{opacity:.6;border-style:dashed}
 .opt.sel{border-color:var(--y);background:#2a3d6e}
-.ban{border-radius:14px;padding:18px 12px;text-align:center;font-size:30px;font-weight:900;letter-spacing:1px;margin:12px 0;color:#fff}
-.ban.g{background:#17a35a}.ban.r{background:#d6304d}.ban.n{background:#2a4a85}.ban small{display:block;font-size:15px;font-weight:600;letter-spacing:0;margin-top:4px;opacity:.95}
-.ex{border-left:4px solid var(--g);padding:4px 12px;margin:10px 0;font-size:18px}
+.ban{border-radius:14px;padding:18px 12px;text-align:center;font-size:30px;font-weight:900;letter-spacing:1px;margin:12px 0;color:var(--dk)}
+.ban.g{background:var(--ok)}.ban.r{background:var(--bad)}.ban.n{background:#2a4a85;color:#fff}.ban small{display:block;font-size:15px;font-weight:600;letter-spacing:0;margin-top:4px}
+.ex{border-left:4px solid var(--ok);padding:4px 12px;margin:10px 0;font-size:18px}
 .hint{border-left:4px solid var(--y);padding:4px 12px;margin:10px 0;font-size:18px}
-table{width:100%;border-collapse:collapse}td,th{padding:8px;text-align:center;border-bottom:1px solid #2a4a85}td:first-child,th:first-child{text-align:left}
-.mk{font-size:22px;font-weight:900}.mk.g{color:#2fe38a}.mk.r{color:#ff4d6d}.mk.n{color:#7d8fb3}
+table{width:100%;border-collapse:collapse}td,th{padding:8px;text-align:center;border-bottom:1px solid var(--ln)}td:first-child,th:first-child{text-align:left}
+.mk{font-size:22px;font-weight:900}.mk.g{color:var(--ok)}.mk.r{color:var(--bad)}.mk.n{color:#9db0d8}
 .pb{height:8px;background:#2a4a85;border-radius:6px;margin:6px 0 12px}.pb i{display:block;height:8px;background:var(--y);border-radius:6px}
-.ko{color:var(--r)}.ok{color:var(--g)}
+.ko{color:var(--bad)}.okc{color:var(--ok)}
+#bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#0e2043;border-bottom:1px solid var(--ln);padding:8px 16px;font-size:14px;position:sticky;top:0;z-index:5}
+#bar input{width:90px;font-size:14px;padding:6px}
+.bd{font-weight:800;padding:2px 8px;border-radius:8px;border:2px solid}.bd.ok{border-color:var(--ok);color:var(--ok)}.bd.sec{border-color:var(--y);color:var(--y)}.bd.off{border-color:var(--bad);color:var(--bad)}.bd.na{border-color:#6b7fa8;color:#9db0d8}
+.big{font-size:22px}.url{font-size:24px;font-weight:800;word-break:break-all;color:var(--y)}
+.modal{position:fixed;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;z-index:9;padding:12px}.modal>div{background:var(--p);border:1px solid var(--ln);border-radius:14px;padding:18px;max-width:640px;width:100%;max-height:92vh;overflow:auto}
+label{display:block;margin:8px 0 4px;color:var(--m)}
 </style></head><!-- © 2026 SAS BELM DEVELOPPEMENT. Tous droits réservés. Reproduction interdite sans autorisation. -->
-<body><div class="w" id="app"></div><div style="text-align:center;color:#9DB4E0;font-size:12px;padding:16px">© 2026 SAS BELM DEVELOPPEMENT. Tous droits réservés. ATT&amp;CK® est une marque de The MITRE Corporation ; support non affilié à MITRE.</div>
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<body><div id="bar"></div><div class="w" id="app"></div><div style="text-align:center;color:#B4C6EA;font-size:12px;padding:16px">© 2026 SAS BELM DEVELOPPEMENT. Tous droits réservés. ATT&amp;CK® est une marque de The MITRE Corporation ; support non affilié à MITRE.</div><div id="mod"></div>
 <script>
 const SETS={"atk": {"titre": "QCM ATT&CK", "qs": [{"q": "Que représente une « tactique » dans MITRE ATT&CK ?", "o": ["Un outil utilisé par l’attaquant", "Un objectif stratégique de l’attaquant", "Une vulnérabilité", "Un groupe d’attaquants"], "ok": 1, "ind": "Pensez à la question « pourquoi ? » : la tactique est le but, la technique est le moyen.", "exp": "La tactique est le « pourquoi » (ex. Credential Access). L’outil relève d’une procédure ; la vulnérabilité relève d’une CVE."}, {"q": "Quelle technique correspond au vol d’identifiants dans la mémoire du processus LSASS ?", "o": ["T1059", "T1003.001", "T1547", "T1566"], "ok": 1, "ind": "Le vol d’identifiants est dans la tactique Credential Access. T1003 est « OS Credential Dumping ».", "exp": "T1003.001 = OS Credential Dumping : LSASS Memory. T1059 est l’interpréteur de commandes, T1547 la persistance au démarrage, T1566 l’hameçonnage."}, {"q": "Quel usage est typique d’ATT&CK dans un SOC ?", "o": ["Créer des virus", "Cartographier ses alertes et mesurer sa couverture de détection", "Mesurer les performances du réseau", "Chiffrer les sauvegardes"], "ok": 1, "ind": "Un SOC détecte : à quoi sert une carte des techniques que l’on sait (ou non) détecter ?", "exp": "On rattache chaque règle ou alerte à une technique pour voir les trous de couverture (layer Navigator)."}, {"q": "Quelle est la différence entre une technique et une sous-technique ?", "o": ["La sous-technique est une variante plus précise d’une technique", "La technique est plus rare", "La sous-technique est un outil", "Il n’y a aucune différence"], "ok": 0, "ind": "Regardez les identifiants : T1003 et T1003.001. Que signifie le « .001 » ?", "exp": "Exemple : T1003 (technique générale) et T1003.001 LSASS Memory (sous-technique, une façon précise de la réaliser)."}, {"q": "Quel outil permet de visualiser la matrice ATT&CK et d’annoter des techniques ?", "o": ["Nmap", "ATT&CK Navigator", "Wireshark", "Nessus"], "ok": 1, "ind": "Un seul de ces quatre outils colore des techniques sur la matrice. Les autres scannent ou capturent.", "exp": "Navigator permet de créer des layers (couleurs, scores, commentaires). Nmap scanne des ports, Wireshark capture le trafic, Nessus cherche des vulnérabilités."}]}, "final": {"titre": "QCM final du module", "qs": [{"q": "Dans ATT&CK, « Credential Access » est :", "o": ["une technique", "une tactique", "un groupe d’attaquants", "un outil"], "ok": 1, "ind": "Il y a 15 éléments de ce type dans la matrice Enterprise, avec un identifiant en TA.", "exp": "Credential Access est la tactique TA0006 ; T1003 en est une technique."}, {"q": "Dans STRIDE, la lettre R (Repudiation) correspond à la violation de :", "o": ["la confidentialité", "l’intégrité", "la non-répudiation", "la disponibilité"], "ok": 2, "ind": "Chaque lettre de STRIDE viole une propriété de sécurité. Que signifie « répudier » une action ?", "exp": "Repudiation ↔ non-répudiation : on peut nier avoir fait une action faute de preuve."}, {"q": "Dans un arbre d’attaque, un nœud OU a pour coût :", "o": ["le minimum de ses enfants", "la somme de ses enfants", "le maximum de ses enfants", "la moyenne de ses enfants"], "ok": 0, "ind": "Pour un nœud OU, l’attaquant n’a besoin que d’une branche. Laquelle choisit-il ?", "exp": "L’attaquant prend la voie la moins chère : minimum. Pour un nœud ET, on additionne."}, {"q": "Quel indicateur dit qu’une vulnérabilité est déjà exploitée dans la nature ?", "o": ["CVSS", "KEV", "CWE", "CPE"], "ok": 1, "ind": "CVSS note la gravité technique, CWE classe les faiblesses, CPE identifie un produit. Un seul signale l’exploitation.", "exp": "Le catalogue KEV (Known Exploited Vulnerabilities) de la CISA recense les CVE exploitées."}, {"q": "ISO/IEC 27005 est :", "o": ["un catalogue de mesures de sécurité", "la norme des exigences du SMSI", "des lignes directrices de gestion des risques", "un référentiel de vulnérabilités"], "ok": 2, "ind": "Dans la famille 27000 : 27001 = exigences, 27002 = mesures. Et 27005 ?", "exp": "27001 = exigences du SMSI, 27002 = catalogue de mesures, 27005 = gestion des risques."}]}, "j1": {"titre": "Rappel du jour 1", "qs": [{"q": "Quelles sont, dans l’ordre, les cinq étapes d’une modélisation des menaces ?", "o": ["Menaces, actifs, risques, cartographie, mesures", "Actifs, cartographie du système, menaces, risques, mesures", "Cartographie, mesures, actifs, menaces, risques", "Risques, menaces, actifs, mesures, cartographie"], "ok": 1, "ind": "On commence par ce qu’on protège, on finit par ce qu’on fait.", "exp": "Actifs, cartographie, menaces, risques, mesures : on ne peut pas chercher des menaces avant de savoir ce que l’on protège et comment le système est construit."}, {"q": "Que signifie le « S » de STRIDE et quelle propriété de sécurité est visée ?", "o": ["Sabotage : la disponibilité", "Spoofing (usurpation d’identité) : l’authenticité", "Surveillance : la confidentialité", "Spoofing : l’intégrité"], "ok": 1, "ind": "Quelqu’un se fait passer pour un autre.", "exp": "Spoofing = usurpation d’identité ; la propriété visée est l’authenticité."}, {"q": "Combien d’étapes compte la méthode PASTA ?", "o": ["Trois", "Cinq", "Sept", "Douze"], "ok": 2, "ind": "PASTA est la méthode « orientée processus » en étapes numérotées de 1 à ….", "exp": "PASTA compte sept étapes, des objectifs métier jusqu’à l’analyse du risque et des contre-mesures."}, {"q": "Pour quel besoin choisit-on TRIKE ?", "o": ["Chiffrer le coût de chaque chemin d’attaque", "Raconter une attaque en sept phases", "Vérifier qui peut faire quoi sur quels actifs (droits et rôles)", "Noter une menace avec cinq critères"], "ok": 2, "ind": "TRIKE part d’une matrice entre acteurs, actifs et actions.", "exp": "TRIKE est centrée sur les droits : matrice acteurs, actifs, actions."}, {"q": "Quelle paire de méthodes se combine bien avec ATT&CK ?", "o": ["PASTA et arbres d’attaque (scénarios et chemins), STRIDE pour catégoriser", "DREAD seul", "TRIKE seul", "Aucune : ATT&CK remplace toutes les autres"], "ok": 0, "ind": "ATT&CK décrit les comportements : il complète les méthodes qui construisent des scénarios.", "exp": "PASTA (scénarios) et les arbres d’attaque (chemins chiffrés) se rattachent aux techniques ATT&CK ; STRIDE catégorise les menaces."}]}, "surface": {"titre": "QCM surface d’attaque", "qs": [{"q": "La surface d’attaque est :", "o": ["Une faille précise dans un logiciel", "Un ensemble de points d’entrée exploitables", "Une mauvaise configuration du pare-feu", "Le nombre d’utilisateurs d’un service"], "ok": 1, "ind": "Une surface, ce n’est pas un seul point.", "exp": "La surface est l’ensemble des points d’entrée. Une faille est une vulnérabilité, une mauvaise configuration est un élément de la surface, pas la surface."}, {"q": "Le phishing exploite quelle surface d’attaque ?", "o": ["Réseau", "Physique", "Humaine", "Applicative"], "ok": 2, "ind": "Qui est visé : une machine ou une personne ?", "exp": "Le phishing vise l’utilisateur, pas le réseau : surface humaine."}, {"q": "Quelle action réduit la surface d’attaque ?", "o": ["Ajouter des services pour les clients", "Segmenter le réseau", "Reporter les mises à jour", "Ouvrir davantage de ports"], "ok": 1, "ind": "Quelle action coupe les chemins d’attaque ?", "exp": "Segmenter coupe les chemins d’attaque ; ajouter des services ou ignorer les mises à jour agrandit la surface."}, {"q": "La faille d’Apache Struts (Equifax, 2017) relève de quelle surface ?", "o": ["Physique", "Logicielle", "Humaine", "Organisationnelle"], "ok": 1, "ind": "Un composant tiers non corrigé.", "exp": "Un composant logiciel tiers non corrigé : surface logicielle."}, {"q": "Quel outil permet de scanner vous-même les ports d’un réseau ?", "o": ["OWASP ZAP", "Nmap", "Shodan", "Wireshark"], "ok": 1, "ind": "Un seul des trois outils envoie lui-même les paquets de découverte de ports.", "exp": "Nmap scanne les ports. ZAP teste des applications web ; Shodan interroge un index existant sans que vous scanniez vous-même ; Wireshark capture du trafic."}]}, "ident": {"titre": "Flash : type d’identifiant ATT&CK", "qs": [{"q": "TA0001 désigne :", "o": ["Une technique", "Une tactique", "Un groupe", "Une mitigation"], "ok": 1, "ind": "TA = …", "exp": "Le préfixe TA désigne une tactique (TA0001 = Initial Access)."}, {"q": "T1059 désigne :", "o": ["Une tactique", "Une technique", "Une sous-technique", "Un logiciel"], "ok": 1, "ind": "T suivi de quatre chiffres.", "exp": "T1059 = Command and Scripting Interpreter : une technique."}, {"q": "T1059.001 désigne :", "o": ["Une technique", "Une sous-technique", "Un groupe", "Une tactique"], "ok": 1, "ind": "Le suffixe après le point.", "exp": "Le « .001 » précise la technique : PowerShell. C’est une sous-technique."}, {"q": "G0016 désigne :", "o": ["Un groupe d’attaquants", "Une mesure défensive", "Une technique", "Un logiciel malveillant"], "ok": 0, "ind": "G comme …", "exp": "G = groupe (G0016 = APT29)."}, {"q": "M1032 désigne :", "o": ["Un groupe", "Une technique", "Une mitigation (mesure défensive)", "Une tactique"], "ok": 2, "ind": "M comme …", "exp": "M = mitigation (M1032 = Multi-factor Authentication)."}]}, "dict": {"titre": "Flash : CVE, CWE, CAPEC ou ATT&CK ?", "qs": [{"q": "Une faille précise dans une version d’Apache Log4j :", "o": ["CVE", "CWE", "CAPEC", "ATT&CK"], "ok": 0, "ind": "Une faille précise, numérotée par année.", "exp": "CVE-2021-44228 : une vulnérabilité précise dans un produit."}, {"q": "Le type de faiblesse « injection d’expression » :", "o": ["CVE", "CWE", "CAPEC", "ATT&CK"], "ok": 1, "ind": "On décrit une famille de faiblesses de conception ou de code.", "exp": "CWE-917 : le type de faiblesse."}, {"q": "Le schéma d’attaque qui exploite ce type de faiblesse :", "o": ["CVE", "CWE", "CAPEC", "ATT&CK"], "ok": 2, "ind": "On décrit la manière d’exploiter.", "exp": "CAPEC-242 : la manière d’exploiter la faiblesse."}, {"q": "La technique T1190 de la tactique Initial Access :", "o": ["CVE", "CWE", "CAPEC", "ATT&CK"], "ok": 3, "ind": "Une tactique, une technique : quel référentiel ?", "exp": "ATT&CK décrit le comportement observé de l’attaquant, rattaché à une tactique."}]}};
-const $=s=>document.querySelector(s),A=$('#app');
+const $=s=>document.querySelector(s),A=$('#app'),BAR=$('#bar');
 const qs=new URLSearchParams(location.search),MOCK=qs.get('t')==='bc';
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const L='ABCDEF';
-/* ---- transport (PeerJS, ou BroadcastChannel pour les tests) ---- */
-function Host(code,onMsg){
-  const conns={};
-  if(MOCK){const ch=new BroadcastChannel('qz-'+code);ch.onmessage=e=>{const m=e.data;if(m.to==='host'){conns[m.from]=1;onMsg(m.from,m.msg)}};
-    return {send:(to,msg)=>ch.postMessage({to,msg}),broadcast:msg=>ch.postMessage({to:'*',msg}),ready:Promise.resolve()}}
-  const peer=new Peer('QZ-'+code);
-  const ready=new Promise((ok,ko)=>{peer.on('open',ok);peer.on('error',ko)});
-  peer.on('connection',c=>{c.on('open',()=>{conns[c.peer]=c});c.on('data',d=>onMsg(c.peer,d));c.on('close',()=>{onMsg(c.peer,{t:'bye'});delete conns[c.peer]})});
-  return {send:(to,msg)=>conns[to]&&conns[to].send(msg),broadcast:msg=>Object.values(conns).forEach(c=>c.send(msg)),ready}
-}
-function Client(code,onMsg){
-  const me='p'+Math.random().toString(36).slice(2,8);
-  if(MOCK){const ch=new BroadcastChannel('qz-'+code);ch.onmessage=e=>{const m=e.data;if(m.to===me||m.to==='*')onMsg(m.msg)};
-    return {send:msg=>ch.postMessage({to:'host',from:me,msg}),ready:Promise.resolve()}}
-  const peer=new Peer();let c;
-  const ready=new Promise((ok,ko)=>{peer.on('open',()=>{c=peer.connect('QZ-'+code,{reliable:true});c.on('open',ok);c.on('data',onMsg);c.on('close',()=>onMsg({t:'lost'}))});peer.on('error',ko)});
-  return {send:msg=>c&&c.open&&c.send(msg),ready}
-}
-/* ---- accueil ---- */
+const L='ABCDEF',WS='wss://cpro-relay.belmdeveloppement.workers.dev/ps',NTFY='https://ntfy.sh';
+const rid=()=>Math.random().toString(36).slice(2,12),norm=s=>String(s).trim().toLowerCase();
+const lsGet=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const isTel=()=>{try{return matchMedia('(pointer:coarse)').matches&&innerWidth<900}catch(e){return false}};
+/* ================= Bus : relais Cloudflare (voie principale), ntfy en secours seulement ================= */
+function Bus(room,onstat){
+  const b={room,ws:null,up:false,subs:{},seen:new Set(),fails:0,sig:0,es:{},esOk:false,acks:{},ntfyAt:0,dead:false,onup:[]};
+  const stat=()=>{try{onstat&&onstat()}catch(e){}};
+  b.state=()=>MOCK||b.up?'ok':(b.esOk?'sec':'off');
+  const deliver=(t,o,ts)=>{if(o&&o._u){if(b.seen.has(o._u))return;b.seen.add(o._u);if(b.seen.size>5000)b.seen.clear()}b.sig=Date.now();const s=b.subs[t];if(s)s.cb(o,ts)};
+  function closeES(){Object.values(b.es).forEach(e=>{try{e.close()}catch(x){}});b.es={};b.esOk=false}
+  function openES(){if(b.up||MOCK||b.dead)return;Object.keys(b.subs).forEach(t=>{if(b.es[t])return;
+    const es=new EventSource(NTFY+'/'+t+'/sse?since='+(b.subs[t].nlast||'10m'));
+    es.onopen=()=>{b.esOk=true;stat()};es.onerror=()=>{b.esOk=false;stat()};
+    es.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch(x){return}if(m.event&&m.event!=='message')return;if(m.id)b.subs[t].nlast=m.id;let o;try{o=JSON.parse(m.message)}catch(x){return}deliver(t,o,(m.time||0)*1000)};
+    b.es[t]=es})}
+  b.open=()=>{
+    if(MOCK||b.dead||b.ws)return;
+    let w;try{w=new WebSocket(WS+'?room='+encodeURIComponent(room))}catch(e){return setTimeout(b.open,3000)}
+    b.ws=w;let ping=null,closed=false;
+    w.onopen=()=>{b.up=true;b.fails=0;b.sig=Date.now();closeES();Object.keys(b.subs).forEach(t=>w.send(JSON.stringify({a:'sub',t,since:b.subs[t].last||0})));
+      ping=setInterval(()=>{try{w.send('ping')}catch(e){}},25000);const q=b.onup.slice();q.forEach(f=>{try{f()}catch(e){}});stat()};
+    w.onmessage=e=>{if(e.data==='pong'){b.sig=Date.now();return}let m;try{m=JSON.parse(e.data)}catch(x){return}
+      if(m.a==='ack'){const k=b.acks[m.u];if(k){clearTimeout(k.t);delete b.acks[m.u];if(m.n===0)k.fb()}return}
+      if(m.a!=='msg')return;const s=b.subs[m.t];if(!s)return;s.last=m.id;let o;try{o=JSON.parse(m.m)}catch(x){return}deliver(m.t,o,m.ts)};
+    const end=()=>{if(closed)return;closed=true;clearInterval(ping);b.ws=null;b.up=false;b.fails++;stat();setTimeout(()=>{if(!b.up)openES()},4000);setTimeout(b.open,Math.min(15000,1000*Math.pow(2,Math.min(b.fails,4))))};
+    w.onclose=end;w.onerror=end};
+  if(MOCK){b.ch=new BroadcastChannel('qz-'+room);b.ch.onmessage=e=>{const m=e.data;let o;try{o=JSON.parse(m.m)}catch(x){return}deliver(m.t,o,Date.now())}}
+  b.sub=(t,cb)=>{b.subs[t]={last:0,cb};if(b.up)b.ws.send(JSON.stringify({a:'sub',t,since:0}));else if(!MOCK){b.open();if(b.fails>0)openES()}};
+  b.pub=(t,obj)=>{obj._u=rid();const body=JSON.stringify(obj);
+    const post=()=>fetch(NTFY+'/'+t,{method:'POST',body}).catch(()=>{});
+    const fb=()=>{const n=Date.now();if(n-b.ntfyAt<20000)return;b.ntfyAt=n;post()};  // ntfy ménagé : au plus 1 envoi / 20 s si le relais est joignable
+    if(MOCK){b.ch.postMessage({t,m:body});return}
+    if(b.up){const k={fb};k.t=setTimeout(()=>{delete b.acks[obj._u];fb()},2500);b.acks[obj._u]=k;try{b.ws.send(JSON.stringify({a:'pub',t,m:body,u:obj._u}));return}catch(e){clearTimeout(k.t);delete b.acks[obj._u]}}
+    post()};
+  b.resync=()=>{Object.keys(b.subs).forEach(t=>{b.subs[t].last=0;b.subs[t].nlast=null});
+    if(MOCK)return;if(b.ws){try{b.ws.close()}catch(e){}}else b.open();closeES();setTimeout(()=>{if(!b.up)openES()},4000)};
+  b.close=()=>{b.dead=true;try{b.ws&&b.ws.close()}catch(e){}closeES()};
+  return b}
+/* ================= Voyant de synchro ================= */
+const buses={};let role='',ageEl=null;
+function badge(b,nom){if(!b)return`<span class="bd na">— ${nom} : non liée</span>`;const s=b.state();
+  const t=s==='ok'?'● OK (relais)':s==='sec'?'▲ Secours (ntfy)':'■ Coupée';return`<span class="bd ${s}">${nom} : ${t}</span>`}
+function ageTxt(b){if(!b||!b.sig)return'aucun signal';const s=Math.round((Date.now()-b.sig)/1000);return s<2?'à l’instant':'il y a '+s+' s'}
+function drawBar(){
+  const sl=role==='host'&&G&&G.sid?`<span id="slb">${badge(SL,'PowerPoint')}</span>`:'';
+  BAR.innerHTML=`<b>MITRE · Jeu 24</b> ${badge(role==='host'?H:C,'Synchro')} ${sl}<span class="syncAge" style="color:var(--m)"></span>
+  <button class="s sm" onclick="resync()">Resynchroniser</button><button class="s sm" onclick="openReport()">Signaler</button>
+  ${role==='host'?'<button class="s sm" onclick="showReports()">Signalements ('+(RPT.length)+')</button>':''}`;
+  ageEl=BAR.querySelector('.syncAge');tickAge()}
+function tickAge(){if(!ageEl)return;const b=role==='host'?H:C;ageEl.textContent='dernier signal : '+ageTxt(b)+(role==='host'&&SL?' · diapo : '+ageTxt(SL):'')}
+setInterval(tickAge,1000);
+function resync(){const b=role==='host'?H:C;if(b)b.resync();if(SL){G.t0=0;SL.resync()}if(role==='host')pubState();else if(S&&S.nom)sendHello();drawBar()}
+/* ================= Signaler (non anonyme, file hors ligne) ================= */
+let RP=null,RPT=[];const RPQ='qz_rpq';
+function rpBus(){if(!RP){RP=Bus('qz-rapports',()=>{});RP.sub('qzrapport',o=>{if(o&&o.id&&!RPT.find(x=>x.id===o.id)){RPT.push(o);if(role==='host')drawBar()}})}return RP}
+function flushReports(){const q=lsGet(RPQ,[]);if(!q.length)return;const b=rpBus();if(!(MOCK||b.up))return;q.forEach(r=>b.pub('qzrapport',Object.assign({},r)));lsSet(RPQ,[])}
+setInterval(flushReports,10000);addEventListener('online',()=>{if(RP)RP.resync();setTimeout(flushReports,1500)});
+function openReport(){
+  const who=role==='host'?'Animateur':(S&&S.nom)||'';const ctx=(G&&G.k?G.k+(G.i>=0?' · question '+(G.i+1):''):'')||(S&&S.st&&S.st.i>=0?'question '+(S.st.i+1):'');
+  $('#mod').innerHTML=`<div class="modal"><div role="dialog" aria-label="Signaler"><h2>Signaler un problème</h2>
+  <label>Périmètre</label><select id="rp_p"><option>Ce jeu</option><option>Une page du support</option><option>Un outil</option><option>L’application</option><option>Le cours</option></select>
+  <label>Type</label><select id="rp_t"><option>Erreur de contenu</option><option>Bug</option><option>Idée d’amélioration</option></select>
+  <label>Contexte (prérempli)</label><input id="rp_c" value="${esc(ctx)}">
+  <label>Votre message</label><textarea id="rp_m" rows="4"></textarea>
+  ${role==='host'?'<label><input type="checkbox" id="rp_a" style="width:auto"> À tous les jeux (généralisation)</label>':''}
+  <p class="hint">Ce signalement n’est pas anonyme : votre prénom (${esc(who||'—')}) est enregistré avec lui. Il part avec le statut « à approuver par l’enseignant ». Sans réseau, il est conservé puis envoyé au retour de la connexion.</p>
+  <div class="row"><button onclick="sendReport()">Envoyer</button><button class="s" onclick="closeMod()">Annuler</button></div></div></div>`}
+function closeMod(){$('#mod').innerHTML=''}
+function sendReport(){const m=$('#rp_m').value.trim();if(!m){$('#rp_m').focus();return}
+  const r={id:rid(),ts:new Date().toISOString(),nom:role==='host'?'Animateur':(S&&S.nom)||'?',role:role||'accueil',jeu:'24 MITRE',perim:$('#rp_p').value,type:$('#rp_t').value,ctx:$('#rp_c').value,txt:m,statut:'à approuver par l’enseignant',tous:!!($('#rp_a')&&$('#rp_a').checked)};
+  const q=lsGet(RPQ,[]);q.push(r);lsSet(RPQ,q);rpBus();flushReports();
+  $('#mod').innerHTML=`<div class="modal"><div><h2>✓ Signalement enregistré</h2><p>${(MOCK||(RP&&RP.up))?'Envoyé.':'▲ Pas de réseau pour l’instant : il sera envoyé au retour de la connexion.'}</p><button onclick="closeMod()">Fermer</button></div></div>`}
+function showReports(){rpBus();const L2=RPT.slice().sort((a,b)=>a.ts<b.ts?1:-1);
+  $('#mod').innerHTML=`<div class="modal"><div><h2>Signalements (${L2.length})</h2>${L2.length?L2.map(r=>`<div class="card"><b>${esc(r.type)}</b> · ${esc(r.perim)} · ${esc(r.ctx||'')}<br>${esc(r.txt)}<br><small>${esc(r.nom)} · ${esc(r.ts)} · ${esc(r.statut)}${r.tous?' · à tous les jeux':''}</small></div>`).join(''):'<p>Aucun signalement reçu.</p>'}
+  <div class="row"><button onclick="exportReports()">Exporter .txt</button><button class="s" onclick="closeMod()">Fermer</button></div></div></div>`}
+function exportReports(){const t=RPT.map(r=>[r.ts,r.jeu,r.nom,r.type,r.perim,r.ctx,r.statut+(r.tous?' (à tous les jeux)':''),r.txt].join(' | ')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/plain'}));a.download='24_signalements.txt';a.click()}
+/* ================= Accueil ================= */
 function home(){
-  if(qs.get('room'))return join(qs.get('room').toUpperCase());
+  if(qs.get('room')){role='player';return join(qs.get('room').toUpperCase())}
   if(qs.get('set')&&SETS[qs.get('set')])return hostSetup(qs.get('set'));
-  A.innerHTML=`<h1>QUIZ <b>EN DIRECT</b></h1><p style="color:var(--m)">Les étudiants répondent sur leur téléphone, les résultats s’affichent en direct sur l’écran de l’animateur.</p>
+  role='';drawBar();
+  A.innerHTML=`<h1>MITRE <b>· jeu 24</b></h1><p style="color:var(--m)">Quiz en direct couplé au PowerPoint. <b>Sur PC d’abord</b> : le téléphone n’est qu’un secours.</p>
+  <div class="card"><h2>Étudiant (sur votre PC)</h2><p>Saisissez le code affiché au tableau.</p><div class="row"><input id="code" maxlength="8" placeholder="Code (ex. K3F9)" style="max-width:260px" onkeydown="if(event.key==='Enter')join($('#code').value.trim().toUpperCase())"><button onclick="role='player';join($('#code').value.trim().toUpperCase())">Rejoindre</button></div></div>
   <div class="card"><h2>Animateur</h2><p>Choisissez le quiz, puis projetez la page.</p>${Object.keys(SETS).map(k=>`<p><button onclick="hostSetup('${k}')">${esc(SETS[k].titre)} (${SETS[k].qs.length} questions)</button></p>`).join('')}</div>
-  <div class="card"><h2>Étudiant</h2><p>Scannez le QR code, ou saisissez le code affiché au tableau.</p><div class="row"><input id="code" maxlength="8" placeholder="Code (ex. K3F9)" style="max-width:260px"><button onclick="join($('#code').value.trim().toUpperCase())">Rejoindre</button></div></div>`;
-}
-/* ---- animateur ---- */
-let H,G;
+  <p style="color:var(--m);font-size:13px">ATT&amp;CK® est une marque de The MITRE Corporation. Ce jeu n’est pas affilié à The MITRE Corporation.</p>`}
+/* ================= Animateur ================= */
+let H=null,G=null,SL=null;
+const T=s=>'qz'+G.code+s;
 function hostSetup(k){
-  const code=Math.random().toString(36).slice(2,6).toUpperCase();
-  G={code,k,set:SETS[k],pl:{},order:[],i:-1,phase:'lobby',hint:false};
-  H=Host(code,onPlayer);A.innerHTML='<p>Connexion…</p>';
-  H.ready.then(lobby,e=>{A.innerHTML='<div class="card ko">Connexion impossible ('+esc(e.type||e)+'). Essayez le partage de connexion du téléphone de l’animateur.</div>'});
-}
+  role='host';const code=Math.random().toString(36).slice(2,6).toUpperCase().replace(/[01OI]/g,'7');
+  G={code,k,set:SETS[k],pl:{},i:-1,phase:'lobby',hint:false,sid:qs.get('sid')||'',slide:null,v:0};
+  H=Bus('blc-'+code,()=>{drawBar();if(G&&G.phase==='lobby')lobbyList()});H.sub(T('u'),onPlayer);H.open();
+  if(G.sid)linkSlides(G.sid);drawBar();lobby()}
+function linkSlides(sid){G.sid=sid.trim();if(SL)SL.close();G.t0=Date.now();
+  SL=Bus(G.sid,()=>drawBar());
+  SL.sub('ac'+G.sid+'s',(o,ts)=>{if(G.t0&&ts&&ts<G.t0)return;if(o&&o.k==='S'){G.slide={n:o.n,g:String(o.g||''),at:Date.now()};slideBanner()}});SL.open();drawBar()}
+function slideBanner(){const e=$('#sb');if(!e||!G.slide)return;const g=G.slide.g,k=G.k;let act='';
+  if(g===k&&G.phase==='lobby'&&Object.keys(G.pl).length)act=`<button onclick="nextQ()">Lancer le quiz (diapo affichée)</button>`;
+  else if(g.startsWith(k+'-')){const n=+g.slice(k.length+1);if(n>=1&&n<=G.set.qs.length&&(G.phase!=='ask'||G.i!==n-1))act=`<button onclick="openQ(${n-1})">Ouvrir la question ${n} (diapo affichée)</button>`}
+  e.innerHTML=`<div class="card">Diapo ${esc(G.slide.n)} · étiquette « ${esc(g||'—')} » ${act}</div>`}
+function manualBox(){return`<div class="card"><b>Plan B manuel</b> · <input id="mq" type="number" min="1" max="${G.set.qs.length}" placeholder="n° question" style="width:130px"> <button class="s sm" onclick="openQ((+$('#mq').value||1)-1)">Ouvrir cette question</button>
+  ${G.sid?'':`<span style="margin-left:12px">Code de séance PowerPoint (JL_SID) : <input id="sidin" placeholder="ex. msrc1" style="width:150px"> <button class="s sm" onclick="linkSlides($('#sidin').value)">Lier</button></span>`}</div><div id="sb"></div>`}
 function joinURL(){return location.origin+location.pathname+'?room='+G.code+(MOCK?'&t=bc':'')}
 function lobby(){
-  G.phase='lobby';const url=joinURL();
+  G.phase='lobby';const url=joinURL(),short=location.host+location.pathname;
   A.innerHTML=`<h1>${esc(G.set.titre)}</h1><div class="row" style="align-items:flex-start">
-  <div class="card" style="flex:1;min-width:280px"><div style="color:var(--m)">Code</div><div class="tm" style="letter-spacing:6px">${G.code}</div>
-  <div id="qr"></div><div style="word-break:break-all;color:var(--m);font-size:13px">${esc(url)}</div></div>
-  <div class="card" style="flex:2;min-width:280px"><h2>Participants connectés (<span id="np">0</span>)</h2><div id="tl"></div>
-  <p><button id="go" onclick="nextQ()" disabled>Lancer le quiz</button></p></div></div>`;
-  const e=$('#qr');e.innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data=${encodeURIComponent(url)}" width="240" height="240" alt="QR" style="background:#fff;border-radius:10px;margin-top:8px" onerror="this.replaceWith(document.createTextNode('QR indisponible : saisir le code'))">`;
-  lobbyList();
-}
-function lobbyList(){const t=$('#tl');if(!t)return;t.innerHTML=G.order.length?G.order.map(i=>`<span class="chip">${esc(G.pl[i].nom)}</span>`).join(''):'<i style="color:var(--m)">En attente des participants…</i>';$('#np').textContent=G.order.length;const b=$('#go');if(b)b.disabled=!G.order.length}
+  <div class="card" style="flex:2;min-width:300px"><div class="big"><b>Sur votre PC</b> : ouvrez</div><div class="url">${esc(short)}</div><div class="big">et saisissez le code</div><div class="tm" style="letter-spacing:6px">${G.code}</div>
+  <p><button class="s sm" onclick="navigator.clipboard&&navigator.clipboard.writeText('${esc(url)}')">Copier le lien direct</button> <span style="color:var(--m);font-size:13px;word-break:break-all">${esc(url)}</span></p></div>
+  <div class="card" style="flex:1;min-width:220px;text-align:center"><b>▲ Secours téléphone</b><br>(seulement si vous n’avez pas de PC)<div id="qr"></div></div></div>
+  <div class="card"><h2>Participants connectés (<span id="np">0</span>)</h2><div id="tl"></div><p><button id="go" onclick="nextQ()" disabled>Lancer le quiz</button> <span style="color:var(--m)">Raccourci : barre d’espace</span></p></div>${manualBox()}`;
+  $('#qr').innerHTML=`<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=8&data=${encodeURIComponent(url)}" width="200" height="200" alt="QR code de secours pour téléphone" style="background:#fff;border-radius:10px;margin-top:8px" onerror="this.replaceWith(document.createTextNode('QR indisponible : saisir le code'))">`;
+  lobbyList();slideBanner()}
+function devTxt(p){const d=Object.keys(p.dev||{});return d.length?' ('+d.map(x=>x==='tel'?'tél. secours':'PC').join(' + ')+')':''}
+function lobbyList(){const t=$('#tl');if(!t)return;const ks=Object.keys(G.pl);t.innerHTML=ks.length?ks.map(k=>`<span class="chip">${esc(G.pl[k].nom)}${devTxt(G.pl[k])}</span>`).join(''):'<i style="color:var(--m)">En attente des participants…</i>';$('#np').textContent=ks.length;const b=$('#go');if(b)b.disabled=!ks.length}
 function curQ(){return G.set.qs[G.i]}
-function counts(){const q=curQ(),c=q.o.map(()=>0);G.order.forEach(i=>{const a=G.pl[i].ans[G.i];if(a!=null)c[a]++});return c}
-function answered(){return G.order.filter(i=>G.pl[i].ans[G.i]!=null).length}
-function onPlayer(id,m){
-  if(m.t==='bye'){if(G.pl[id])G.pl[id].off=1;return}
-  if(m.t==='hello'){
-    let k=G.order.find(i=>G.pl[i].nom.toLowerCase()===m.nom.toLowerCase());
-    if(k&&k!==id){G.pl[id]=G.pl[k];delete G.pl[k];G.order[G.order.indexOf(k)]=id}
-    else if(!k){G.pl[id]={nom:m.nom,ans:{}};G.order.push(id)}
-    G.pl[id].off=0;H.send(id,{t:'ok',nom:m.nom});sync(id);
-    if(G.phase==='lobby')lobbyList();else view();return}
-  if(m.t==='ans'&&G.phase==='ask'&&G.pl[id]&&m.q===G.i){G.pl[id].ans[G.i]=m.a;view()}
-}
-function qmsg(){const q=curQ();return {t:'q',i:G.i,n:G.set.qs.length,q:q.q,o:q.o,ind:G.hint?q.ind:null}}
-function revmsg(id){const q=curQ(),a=G.pl[id].ans[G.i];return {t:'rev',i:G.i,ok:a===q.ok,a,correct:q.ok,exp:q.exp,score:score(id),n:G.set.qs.length}}
-function score(id){return G.set.qs.reduce((s,q,k)=>s+(G.pl[id].ans[k]===q.ok?1:0),0)}
-function sync(id){
-  if(G.phase==='ask'){H.send(id,qmsg());const a=G.pl[id].ans[G.i];if(a!=null)H.send(id,{t:'mine',i:G.i,a})}
-  else if(G.phase==='rev')H.send(id,revmsg(id));
-  else if(G.phase==='end')H.send(id,endmsg(id));
-  else H.send(id,{t:'wait'})}
-function nextQ(){G.i++;G.hint=false;if(G.i>=G.set.qs.length){G.phase='end';G.order.forEach(i=>H.send(i,endmsg(i)));return view()}G.phase='ask';H.broadcast(qmsg());view()}
-function showHint(){G.hint=true;H.broadcast({t:'hint',i:G.i,ind:curQ().ind});view()}
-function reveal(){G.phase='rev';G.order.forEach(i=>H.send(i,revmsg(i)));view()}
-function endmsg(id){const r=rank();return {t:'end',score:score(id),n:G.set.qs.length,rang:r.findIndex(x=>x.id===id)+1,tot:r.length}}
-function rank(){return G.order.map(i=>({id:i,nom:G.pl[i].nom,s:score(i)})).sort((a,b)=>b.s-a.s||a.nom.localeCompare(b.nom))}
+function plk(){return Object.keys(G.pl)}
+function counts(){const q=curQ(),c=q.o.map(()=>0);plk().forEach(k=>{const a=G.pl[k].ans[G.i];if(a!=null)c[a]++});return c}
+function answered(){return plk().filter(k=>G.pl[k].ans[G.i]!=null).length}
+function score(k){return G.set.qs.reduce((s,q,i)=>s+(G.pl[k].ans[i]===q.ok?1:0),0)}
+function rank(){return plk().map(k=>({k,nom:G.pl[k].nom,s:score(k)})).sort((a,b)=>b.s-a.s||a.nom.localeCompare(b.nom))}
+function onPlayer(m){
+  if(!m||!m.nom)return;const k=norm(m.nom);if(!k)return;
+  if(!G.pl[k])G.pl[k]={nom:String(m.nom).trim().slice(0,24),ans:{},dev:{}};const p=G.pl[k];p.dev[m.dev==='tel'?'tel':'pc']=Date.now();
+  if(m.t==='hello'){H.pub(T('p'),{t:'mine',k,ans:p.ans});pubState();if(G.phase==='lobby')lobbyList();else if(G.phase!=='end')view();return}
+  if(m.t==='ans'&&G.phase==='ask'&&m.q===G.i){p.ans[m.q]=m.a;H.pub(T('p'),{t:'mine',k,ans:p.ans});view()}}
+function pubState(){G.v=Math.max(Date.now(),G.v+1);const q=G.i>=0&&G.i<G.set.qs.length?curQ():null;
+  const s={v:G.v,i:G.i,ph:G.phase,n:G.set.qs.length,titre:G.set.titre};
+  if(q&&(G.phase==='ask'||G.phase==='rev')){s.q=q.q;s.o=q.o;if(G.hint||G.phase==='rev')s.ind=q.ind}
+  if(G.phase==='rev'){s.correct=q.ok;s.exp=q.exp;s.good=G.set.qs.slice(0,G.i+1).map(x=>x.ok)}
+  if(G.phase==='end'){s.good=G.set.qs.map(x=>x.ok);s.res=rank().map(x=>({k:x.k,n:x.nom,s:x.s}))}
+  H.pub(T('h'),s)}
+function openQ(i){if(i<0||i>=G.set.qs.length)return;G.i=i;G.hint=false;G.phase='ask';pubState();view();slideBanner()}
+function nextQ(){const n=G.i+1;if(n>=G.set.qs.length){G.phase='end';pubState();return view()}openQ(n)}
+function showHint(){G.hint=true;pubState();view()}
+function reveal(){G.phase='rev';pubState();view()}
 function view(){
-  if(G.phase==='lobby')return;
-  if(G.phase==='end')return endView();
-  const q=curQ(),c=counts(),tot=G.order.length,ans=answered(),mx=Math.max(1,...c),rev=G.phase==='rev';
+  if(G.phase==='lobby')return lobby();if(G.phase==='end')return endView();
+  const q=curQ(),c=counts(),tot=plk().length,ans=answered(),mx=Math.max(1,...c),rev=G.phase==='rev';
   A.innerHTML=`<div class="row" style="justify-content:space-between"><h2>${esc(G.set.titre)} · question ${G.i+1} / ${G.set.qs.length}</h2><div><span class="chip">${ans} / ${tot} réponses</span> <span class="chip">code ${G.code}</span></div></div>
-  <div class="pb"><i style="width:${tot?100*ans/tot:0}%"></i></div>
-  <div class="q">${esc(q.q)}</div>
-  ${q.o.map((o,k)=>`<div class="opt ${rev?(k===q.ok?'good':'bad'):''}"><div class="bar" style="width:${100*c[k]/Math.max(mx,tot?ans:1)}%"></div><div class="lt">${L[k]}</div><div class="tx">${esc(o)}</div><div class="n">${c[k]}</div></div>`).join('')}
+  <div class="pb"><i style="width:${tot?100*ans/tot:0}%"></i></div><div class="q">${esc(q.q)}</div>
+  ${q.o.map((o,k)=>`<div class="opt ${rev?(k===q.ok?'good':'bad'):''}"><div class="bar" style="width:${100*c[k]/Math.max(mx,tot?ans:1)}%"></div><div class="lt">${L[k]}</div><div class="tx">${rev?(k===q.ok?'✓ ':'✗ '):''}${esc(o)}</div><div class="n">${c[k]}</div></div>`).join('')}
   ${G.hint&&!rev?`<div class="hint"><b>Indice</b> : ${esc(q.ind)}</div>`:''}
   ${rev?`<div class="ban ${ans&&c[q.ok]===ans?'g':'n'}">${c[q.ok]} / ${ans} ont bien répondu<small>Bonne réponse : ${L[q.ok]}</small></div><div class="ex"><b>Explication</b><br>${esc(q.exp)}</div>`:''}
-  <div class="row">${rev?`<button onclick="nextQ()">${G.i+1>=G.set.qs.length?'Voir la synthèse':'Question suivante'}</button>`:`<button class="s" onclick="showHint()" ${G.hint?'disabled':''}>Donner l’indice</button><button onclick="reveal()">Révéler la réponse</button>`}</div>`;
-}
+  <div class="row">${rev?`<button onclick="nextQ()">${G.i+1>=G.set.qs.length?'Voir la synthèse':'Question suivante'}</button>`:`<button class="s" onclick="showHint()" ${G.hint?'disabled':''}>Donner l’indice</button><button onclick="reveal()">Révéler la réponse</button>`} <span style="color:var(--m)">Barre d’espace : étape suivante</span></div>${manualBox()}`;slideBanner()}
 function endView(){
   const r=rank(),n=G.set.qs.length;
-  const rate=G.set.qs.map((q,k)=>{const a=G.order.filter(i=>G.pl[i].ans[k]!=null);return a.length?Math.round(100*a.filter(i=>G.pl[i].ans[k]===q.ok).length/G.order.length):0});
-  const mk=(id,k)=>{const a=G.pl[id].ans[k];return a==null?'<span class="mk n">–</span>':a===G.set.qs[k].ok?'<span class="mk g">✔</span>':'<span class="mk r">✖</span>'};
-  A.innerHTML=`<h1>Synthèse · ${esc(G.set.titre)}</h1><div class="card"><table><tr><th>Participant</th>${G.set.qs.map((_,k)=>`<th>Q${k+1}</th>`).join('')}<th>Score</th></tr>
-  ${r.map(x=>`<tr><td>${esc(x.nom)}</td>${G.set.qs.map((_,k)=>`<td>${mk(x.id,k)}</td>`).join('')}<td><b>${x.s} / ${n}</b></td></tr>`).join('')}
-  <tr><td><i>Réussite</i></td>${rate.map(v=>`<td><b class="${v>=70?'ok':v<40?'ko':''}">${v} %</b></td>`).join('')}<td></td></tr></table></div>
-  <div class="row"><button class="s" onclick="lobby()">Retour au lobby</button><button class="s" onclick="G.i=-1;G.order.forEach(i=>G.pl[i].ans={});lobby()">Rejouer (mêmes participants)</button></div>`;
-}
-/* ---- étudiant ---- */
-let C,S={};
+  const rate=G.set.qs.map((q,i)=>{const t=plk().length;return t?Math.round(100*plk().filter(k=>G.pl[k].ans[i]===q.ok).length/t):0});
+  const mk=(k,i)=>{const a=G.pl[k].ans[i];return a==null?'<span class="mk n" title="sans réponse">–</span>':a===G.set.qs[i].ok?'<span class="mk g" title="juste">✓</span>':'<span class="mk r" title="faux">✗</span>'};
+  A.innerHTML=`<h1>Synthèse · ${esc(G.set.titre)}</h1><div class="card"><table><tr><th>Participant</th>${G.set.qs.map((_,i)=>`<th>Q${i+1}</th>`).join('')}<th>Score</th></tr>
+  ${r.map(x=>`<tr><td>${esc(x.nom)}${devTxt(G.pl[x.k])}</td>${G.set.qs.map((_,i)=>`<td>${mk(x.k,i)}</td>`).join('')}<td><b>${x.s} / ${n}</b></td></tr>`).join('')}
+  <tr><td><i>Réussite</i></td>${rate.map(v=>`<td><b>${v>=70?'✓ ':v<40?'⚠ ':''}${v} %</b></td>`).join('')}<td></td></tr></table></div>
+  <div class="row"><button class="s" onclick="G.i=-1;G.phase='lobby';pubState();lobby()">Retour au lobby</button><button class="s" onclick="plk().forEach(k=>G.pl[k].ans={});G.i=-1;G.phase='lobby';pubState();lobby()">Rejouer (mêmes participants)</button><button class="s" onclick="exportCSV()">Exporter .csv</button></div>`}
+function exportCSV(){const n=G.set.qs.length,r=rank();const t='Participant;'+G.set.qs.map((_,i)=>'Q'+(i+1)).join(';')+';Score\n'+r.map(x=>[x.nom].concat(G.set.qs.map((q,i)=>{const a=G.pl[x.k].ans[i];return a==null?'-':a===q.ok?'juste':'faux'})).concat([x.s+'/'+n]).join(';')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+t],{type:'text/csv'}));a.download='24_resultats_'+G.k+'.csv';a.click()}
+addEventListener('keydown',e=>{if(/INPUT|TEXTAREA|SELECT/.test((e.target.tagName||'')))return;
+  if(role==='host'&&G&&(e.key===' '||e.key==='ArrowRight')){e.preventDefault();if(G.phase==='lobby'&&plk().length)nextQ();else if(G.phase==='ask')reveal();else if(G.phase==='rev')nextQ()}
+  if(role==='player'&&S&&S.st&&S.st.ph==='ask'){const k=L.indexOf(e.key.toUpperCase());if(k>=0&&k<(S.st.o||[]).length)pick(k)}});
+/* ================= Joueur ================= */
+let C=null,S={};
 function join(code){
-  if(!code){return}
-  A.innerHTML=`<h1>QUIZ <b>EN DIRECT</b></h1><div class="card"><h2>Code ${esc(code)}</h2><p>Votre prénom (ou équipe) :</p><input id="nom" maxlength="24" autocomplete="off"><p><button onclick="go('${esc(code)}')">Entrer</button></p></div>`;
-}
+  if(!code)return;role='player';drawBar();
+  A.innerHTML=`<h1>MITRE <b>· jeu 24</b></h1><div class="card"><h2>Code ${esc(code)}</h2><p>Votre prénom (ou équipe). Si vous changez d’appareil, saisissez le <b>même prénom</b> : vous reprenez votre place.</p><input id="nom" maxlength="24" autocomplete="off" value="${esc(lsGet('qz_nom',''))}" onkeydown="if(event.key==='Enter')go('${esc(code)}')"><p><button onclick="go('${esc(code)}')">Entrer</button></p></div>`;
+  const e=$('#nom');if(e)e.focus()}
 function go(code){
-  const nom=$('#nom').value.trim();if(!nom)return;
-  A.innerHTML='<p>Connexion…</p>';S={nom,code};
-  C=Client(code,onHost);
-  C.ready.then(()=>C.send({t:'hello',nom}),e=>{A.innerHTML='<div class="card ko">Connexion impossible. Vérifiez le code ou le réseau.</div>'});
-}
+  const nom=$('#nom').value.trim();if(!nom)return;lsSet('qz_nom',nom);
+  S={nom,code,key:norm(nom),st:null,ans:lsGet('qz_ans_'+code+'_'+norm(nom),{}),conf:{}};
+  A.innerHTML='<p>Connexion…</p>';
+  C=Bus('blc-'+code,()=>{drawBar();if(S.st)render()});
+  C.sub('qz'+code+'h',onState);C.sub('qz'+code+'p',onPers);C.onup.push(sendHello);C.open();drawBar();
+  setTimeout(()=>{if(!C.up&&!S.sent)sendHello()},3000);if(MOCK)sendHello()}
+function sendHello(){S.sent=1;C.pub('qz'+S.code+'u',{t:'hello',nom:S.nom,dev:isTel()?'tel':'pc'})}
+function onPers(m){if(m&&m.t==='mine'&&m.k===S.key){Object.keys(m.ans||{}).forEach(i=>{S.conf[i]=true;if(S.ans[i]==null)S.ans[i]=m.ans[i]});lsSet('qz_ans_'+S.code+'_'+S.key,S.ans);if(S.st)render()}}
+function onState(s){if(!s||(S.st&&s.v<S.st.v))return;const nq=!S.st||S.st.i!==s.i;S.st=s;if(nq)S.sent=1;render()}
 function st(h){A.innerHTML=`<div class="row" style="justify-content:space-between"><b>${esc(S.nom)}</b><span class="chip">code ${esc(S.code)}</span></div>`+h}
-function onHost(m){
-  if(m.t==='ok'||m.t==='wait')return st('<div class="card"><h2>Connecté</h2><p>Attendez la première question…</p></div>');
-  if(m.t==='lost')return st('<div class="card ko">Connexion perdue. Rechargez la page et saisissez le même prénom pour reprendre.</div>');
-  if(m.t==='q'){S.q=m;S.sel=null;S.rev=false;return qView()}
-  if(m.t==='mine'&&S.q&&m.i===S.q.i){S.sel=m.a;return qView()}
-  if(m.t==='hint'&&S.q&&m.i===S.q.i){S.q.ind=m.ind;return qView()}
-  if(m.t==='rev'){S.q=S.q||{i:m.i,q:'',o:[]};S.r=m;S.rev=true;return rView()}
-  if(m.t==='end')return st(`<div class="ban n">Quiz terminé<small>Votre score : ${m.score} / ${m.n} · rang ${m.rang} sur ${m.tot}</small></div>`);
-}
-function qView(){
-  const q=S.q;st(`<div class="pb"><i style="width:${100*(q.i+1)/q.n}%"></i></div><div style="color:var(--m)">Question ${q.i+1} / ${q.n}</div><div class="q" style="font-size:22px">${esc(q.q)}</div>`+
-  q.o.map((o,k)=>`<button class="opt ${S.sel===k?'sel':''}" onclick="pick(${k})"><div class="lt">${L[k]}</div><div class="tx">${esc(o)}</div></button>`).join('')+
-  (q.ind?`<div class="hint"><b>Indice</b> : ${esc(q.ind)}</div>`:'')+(S.sel!=null?'<p style="color:var(--m)">Réponse envoyée. Vous pouvez la changer jusqu’à la correction.</p>':''));
-}
-function pick(k){S.sel=k;C.send({t:'ans',q:S.q.i,a:k});qView()}
-function rView(){
-  const r=S.r,q=S.q;
-  st(`<div class="ban ${r.a==null?'n':r.ok?'g':'r'}">${r.a==null?'PAS DE RÉPONSE':r.ok?'BONNE RÉPONSE':'MAUVAISE RÉPONSE'}<small>Bonne réponse : ${L[r.correct]}${q.o&&q.o[r.correct]?' · '+esc(q.o[r.correct]):''}</small></div><div class="ex"><b>Explication</b><br>${esc(r.exp)}</div><p style="color:var(--m)">Score actuel : ${r.score} / ${r.n}</p>`);
-}
-home();
+function render(){const s=S.st;if(!s)return st('<div class="card"><h2>Connexion en cours…</h2><p>En attente de l’animateur.</p></div>');
+  if(s.ph==='lobby')return st('<div class="card"><h2>✓ Connecté</h2><p>Attendez la première question…</p></div>');
+  if(s.ph==='ask')return qView();
+  if(s.ph==='rev'){const a=S.ans[s.i],ok=a===s.correct,sc=s.good.reduce((n,g,i)=>n+(S.ans[i]===g?1:0),0);
+    return st(`<div class="ban ${a==null?'n':ok?'g':'r'}">${a==null?'– PAS DE RÉPONSE':ok?'✓ BONNE RÉPONSE':'✗ MAUVAISE RÉPONSE'}<small>Bonne réponse : ${L[s.correct]}${s.o&&s.o[s.correct]?' · '+esc(s.o[s.correct]):''}</small></div><div class="ex"><b>Explication</b><br>${esc(s.exp)}</div><p style="color:var(--m)">Score actuel : ${sc} / ${s.i+1}</p>`)}
+  if(s.ph==='end'){const me=(s.res||[]).findIndex(x=>x.k===S.key),sc=s.good.reduce((n,g,i)=>n+(S.ans[i]===g?1:0),0);
+    return st(`<div class="ban n">Quiz terminé<small>Votre score : ${sc} / ${s.n}${me>=0?' · rang '+(me+1)+' sur '+s.res.length:''}</small></div>`)}}
+function qView(){const q=S.st,sel=S.ans[q.i];
+  st(`<div class="pb"><i style="width:${100*(q.i+1)/q.n}%"></i></div><div style="color:var(--m)">Question ${q.i+1} / ${q.n} · touches A à ${L[q.o.length-1]} du clavier</div><div class="q" style="font-size:24px">${esc(q.q)}</div>`+
+  q.o.map((o,k)=>`<button class="opt ${sel===k?'sel':''}" onclick="pick(${k})"><div class="lt">${L[k]}</div><div class="tx">${sel===k?'● ':''}${esc(o)}</div></button>`).join('')+
+  (q.ind?`<div class="hint"><b>Indice</b> : ${esc(q.ind)}</div>`:'')+(sel!=null?`<p style="color:var(--m)">${S.conf[q.i]?'✓ Réponse reçue par l’animateur.':'… Envoi en cours.'} Vous pouvez la changer jusqu’à la correction.</p>`:''))}
+function pick(k){const i=S.st.i;S.ans[i]=k;S.conf[i]=false;lsSet('qz_ans_'+S.code+'_'+S.key,S.ans);send(i,k);qView();
+  setTimeout(()=>{if(!S.conf[i]&&S.st&&S.st.i===i&&S.st.ph==='ask')send(i,S.ans[i])},4000)}
+function send(i,a){C.pub('qz'+S.code+'u',{t:'ans',nom:S.nom,q:i,a,dev:isTel()?'tel':'pc'})}
+home();rpBus();setTimeout(flushReports,3000);
 </script></body></html>
