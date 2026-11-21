@@ -123,28 +123,39 @@ function exportReports(){const t=RPT.map(r=>[r.ts,r.jeu,r.nom,r.type,r.perim,r.c
 function home(){
   if(qs.get('room')){role='player';return join(qs.get('room').toUpperCase())}
   if(qs.get('set')&&SETS[qs.get('set')])return hostSetup(qs.get('set'));
+  if(qs.get('sid'))return hostSession(qs.get('sid'));
   role='';drawBar();
   A.innerHTML=`<h1>MITRE <b>· jeu 24</b></h1><p style="color:var(--m)">Quiz en direct couplé au PowerPoint. <b>Sur PC d’abord</b> : le téléphone n’est qu’un secours.</p>
   <div class="card"><h2>Étudiant (sur votre PC)</h2><p>Saisissez le code affiché au tableau.</p><div class="row"><input id="code" maxlength="8" placeholder="Code (ex. K3F9)" style="max-width:260px" onkeydown="if(event.key==='Enter')join($('#code').value.trim().toUpperCase())"><button onclick="role='player';join($('#code').value.trim().toUpperCase())">Rejoindre</button></div></div>
-  <div class="card"><h2>Animateur</h2><p>Choisissez le quiz, puis projetez la page.</p>${Object.keys(SETS).map(k=>`<p><button onclick="hostSetup('${k}')">${esc(SETS[k].titre)} (${SETS[k].qs.length} questions)</button></p>`).join('')}</div>
+  <div class="card"><h2>Tour de contrôle (séance PowerPoint)</h2><p>À ouvrir une seule fois, avant le cours : le code de séance est fixe, les pages du PowerPoint ouvrent les questions automatiquement.</p><div class="row"><input id="sidh" value="msrc1" style="max-width:200px"><button onclick="hostSession($('#sidh').value)">Ouvrir la tour</button></div></div>
+  <div class="card"><h2>Animateur (un seul quiz)</h2><p>Choisissez le quiz, puis projetez la page.</p>${Object.keys(SETS).map(k=>`<p><button onclick="hostSetup('${k}')">${esc(SETS[k].titre)} (${SETS[k].qs.length} questions)</button></p>`).join('')}</div>
   <p style="color:var(--m);font-size:13px">ATT&amp;CK® est une marque de The MITRE Corporation. Ce jeu n’est pas affilié à The MITRE Corporation.</p>`}
 /* ================= Animateur ================= */
 let H=null,G=null,SL=null;
 const T=s=>'qz'+G.code+s;
-function hostSetup(k){
-  role='host';const code=Math.random().toString(36).slice(2,6).toUpperCase().replace(/[01OI]/g,'7');
-  G={code,k,set:SETS[k],pl:{},i:-1,phase:'lobby',hint:false,sid:qs.get('sid')||'',slide:null,v:0};
+function hostSession(sid){sid=String(sid||'').trim().toLowerCase();if(!sid)return;hostSetup('accueil',sid.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8),sid)}
+function hostSetup(k,code0,sess){
+  role='host';const code=code0||Math.random().toString(36).slice(2,6).toUpperCase().replace(/[01OI]/g,'7');
+  G={code,k,set:SETS[k],pl:{},i:-1,phase:'lobby',hint:false,sid:sess||qs.get('sid')||'',sess:!!sess,auto:true,launched:{},slide:null,v:0};
   H=Bus('blc-'+code,()=>{drawBar();if(G&&G.phase==='lobby')lobbyList()});H.sub(T('u'),onPlayer);H.open();
   if(G.sid)linkSlides(G.sid);drawBar();lobby()}
 function linkSlides(sid){G.sid=sid.trim();if(SL)SL.close();G.t0=Date.now();
   SL=Bus(G.sid,()=>drawBar());
-  SL.sub('ac'+G.sid+'s',(o,ts)=>{if(G.t0&&ts&&ts<G.t0)return;if(o&&o.k==='S'){G.slide={n:o.n,g:String(o.g||''),at:Date.now()};slideBanner()}});SL.open();drawBar()}
-function slideBanner(){const e=$('#sb');if(!e||!G.slide)return;const g=G.slide.g,k=G.k;let act='';
-  if(g===k&&G.phase==='lobby'&&Object.keys(G.pl).length)act=`<button onclick="nextQ()">Lancer le quiz (diapo affichée)</button>`;
-  else if(g.startsWith(k+'-')){const n=+g.slice(k.length+1);if(n>=1&&n<=G.set.qs.length&&(G.phase!=='ask'||G.i!==n-1))act=`<button onclick="openQ(${n-1})">Ouvrir la question ${n} (diapo affichée)</button>`}
+  SL.sub('ac'+G.sid+'s',(o,ts)=>{if(G.t0&&ts&&ts<G.t0)return;if(o&&o.k==='S')onSlide(o)});SL.open();drawBar()}
+function onSlide(o){G.slide={n:o.n,g:String(o.g||''),at:Date.now()};if(G.sess&&G.auto)autoSlide();slideBanner()}
+function slideTarget(g){if(SETS[g])return{k:g,q:0};const m=g.match(/^(.+)-(\d+)$/);if(m&&SETS[m[1]]&&+m[2]>=1&&+m[2]<=SETS[m[1]].qs.length)return{k:m[1],q:+m[2]-1};return null}
+function switchSet(k){if(G.k===k)return;G.k=k;G.set=SETS[k];G.i=-1;G.phase='lobby';G.hint=false;plk().forEach(x=>{const p=G.pl[x];p.sets=p.sets||{};p.ans=p.sets[k]||(p.sets[k]={})})}
+function openTarget(){const t=slideTarget(G.slide.g);if(!t)return;if(t.q===0&&G.k===t.k&&G.phase!=='lobby')return;switchSet(t.k);if(t.q>0&&G.phase==='ask'&&G.i===t.q)return;openQ(t.q)}
+function autoSlide(){const key=G.slide.n+'|'+G.slide.g;if(G.lastAuto===key)return;G.lastAuto=key;const t=slideTarget(G.slide.g);if(!t)return;if(t.q===0&&G.launched[t.k])return;openTarget()}
+function slideBanner(){const e=$('#sb');if(!e||!G.slide)return;const g=G.slide.g,k=G.k;let act='';const tg=G.sess?slideTarget(g):null;
+  if(G.sess){if(tg&&!G.auto)act=`<button onclick="openTarget()">Ouvrir « ${esc(SETS[tg.k].titre)} »${tg.q?' · question '+(tg.q+1):''} (diapo affichée)</button>`;else if(tg)act='<span style="color:var(--m)">● ouverture automatique</span>'}
+  else if(g===k&&G.phase==='lobby'&&Object.keys(G.pl).length)act=`<button onclick="nextQ()">Lancer le quiz (diapo affichée)</button>`;
+  else if(!G.sess&&g.startsWith(k+'-')){const n=+g.slice(k.length+1);if(n>=1&&n<=G.set.qs.length&&(G.phase!=='ask'||G.i!==n-1))act=`<button onclick="openQ(${n-1})">Ouvrir la question ${n} (diapo affichée)</button>`}
   e.innerHTML=`<div class="card">Diapo ${esc(G.slide.n)} · étiquette « ${esc(g||'—')} » ${act}</div>`}
-function manualBox(){return`<div class="card"><b>Plan B manuel</b> · <input id="mq" type="number" min="1" max="${G.set.qs.length}" placeholder="n° question" style="width:130px"> <button class="s sm" onclick="openQ((+$('#mq').value||1)-1)">Ouvrir cette question</button>
+function manualBox(){return`${G.sess?`<div class="card"><b>Séance ${esc(G.sid)}</b> · code fixe <b>${esc(G.code)}</b> · <label><input type="checkbox" ${G.auto?'checked':''} style="width:auto" onchange="G.auto=this.checked;slideBanner()"> Ouverture automatique à chaque diapo EN DIRECT</label><br><small style="color:var(--m)">Charger à la main : ${Object.keys(SETS).map(k=>`<button class="s sm" onclick="manSet('${k}')">${esc(SETS[k].titre)}</button>`).join(' ')}</small></div>`:''}<div class="card"><b>Plan B manuel</b> · <input id="mq" type="number" min="1" max="${G.set.qs.length}" placeholder="n° question" style="width:130px"> <button class="s sm" onclick="openQ((+$('#mq').value||1)-1)">Ouvrir cette question</button>
   ${G.sid?'':`<span style="margin-left:12px">Code de séance PowerPoint (JL_SID) : <input id="sidin" placeholder="ex. msrc1" style="width:150px"> <button class="s sm" onclick="linkSlides($('#sidin').value)">Lier</button></span>`}</div><div id="sb"></div>`}
+function manSet(k){switchSet(k);G.phase='lobby';pubState();lobby()}
+function replay(){plk().forEach(k=>{const p=G.pl[k];p.sets=p.sets||{};p.ans=p.sets[G.k]={}});G.i=-1;G.phase='lobby';pubState();lobby()}
 function joinURL(){return location.origin+location.pathname+'?room='+G.code+(MOCK?'&t=bc':'')}
 function lobby(){
   G.phase='lobby';const url=joinURL(),short=location.host+location.pathname;
@@ -166,16 +177,16 @@ function nsc(){return G.set.qs.filter(q=>q.ok>=0).length}
 function rank(){return plk().map(k=>({k,nom:G.pl[k].nom,s:score(k)})).sort((a,b)=>b.s-a.s||a.nom.localeCompare(b.nom))}
 function onPlayer(m){
   if(!m||!m.nom)return;const k=norm(m.nom);if(!k)return;
-  if(!G.pl[k])G.pl[k]={nom:String(m.nom).trim().slice(0,24),ans:{},dev:{}};const p=G.pl[k];p.dev[m.dev==='tel'?'tel':'pc']=Date.now();
-  if(m.t==='hello'){H.pub(T('p'),{t:'mine',k,ans:p.ans});pubState();if(G.phase==='lobby')lobbyList();else if(G.phase!=='end')view();return}
-  if(m.t==='ans'&&G.phase==='ask'&&m.q===G.i){p.ans[m.q]=m.a;H.pub(T('p'),{t:'mine',k,ans:p.ans});view()}}
+  if(!G.pl[k])G.pl[k]={nom:String(m.nom).trim().slice(0,24),ans:{},dev:{},sets:{}};const p=G.pl[k];if(!p.sets)p.sets={};p.ans=p.sets[G.k]||(p.sets[G.k]={});p.dev[m.dev==='tel'?'tel':'pc']=Date.now();
+  if(m.t==='hello'){H.pub(T('p'),{t:'mine',k,s:G.k,ans:p.ans});pubState();if(G.phase==='lobby')lobbyList();else if(G.phase!=='end')view();return}
+  if(m.t==='ans'&&G.phase==='ask'&&m.q===G.i&&(!m.s||m.s===G.k)){p.ans[m.q]=m.a;H.pub(T('p'),{t:'mine',k,s:G.k,ans:p.ans});view()}}
 function pubState(){G.v=Math.max(Date.now(),G.v+1);const q=G.i>=0&&G.i<G.set.qs.length?curQ():null;
-  const s={v:G.v,i:G.i,ph:G.phase,n:G.set.qs.length,titre:G.set.titre};
+  const s={v:G.v,k:G.k,i:G.i,ph:G.phase,n:G.set.qs.length,titre:G.set.titre};
   if(q&&(G.phase==='ask'||G.phase==='rev')){s.q=q.q;s.o=q.o;if(G.hint||G.phase==='rev')s.ind=q.ind}
   if(G.phase==='rev'){s.correct=q.ok;s.exp=q.exp;s.good=G.set.qs.slice(0,G.i+1).map(x=>x.ok)}
   if(G.phase==='end'){s.good=G.set.qs.map(x=>x.ok);s.res=rank().map(x=>({k:x.k,n:x.nom,s:x.s}))}
   H.pub(T('h'),s)}
-function openQ(i){if(i<0||i>=G.set.qs.length)return;G.i=i;G.hint=false;G.phase='ask';pubState();view();slideBanner()}
+function openQ(i){if(i<0||i>=G.set.qs.length)return;G.launched[G.k]=1;G.i=i;G.hint=false;G.phase='ask';pubState();view();slideBanner()}
 function nextQ(){const n=G.i+1;if(n>=G.set.qs.length){G.phase='end';pubState();return view()}openQ(n)}
 function showHint(){G.hint=true;pubState();view()}
 function reveal(){G.phase='rev';pubState();view()}
@@ -195,7 +206,7 @@ function endView(){
   A.innerHTML=`<h1>Synthèse · ${esc(G.set.titre)}</h1><div class="card"><table><tr><th>Participant</th>${G.set.qs.map((_,i)=>`<th>Q${i+1}</th>`).join('')}<th>Score</th></tr>
   ${r.map(x=>`<tr><td>${esc(x.nom)}${devTxt(G.pl[x.k])}</td>${G.set.qs.map((_,i)=>`<td>${mk(x.k,i)}</td>`).join('')}<td><b>${x.s} / ${nsc()}</b></td></tr>`).join('')}
   <tr><td><i>Réussite</i></td>${rate.map(v=>v===null?'<td>–</td>':`<td><b>${v>=70?'✓ ':v<40?'⚠ ':''}${v} %</b></td>`).join('')}<td></td></tr></table></div>
-  <div class="row"><button class="s" onclick="G.i=-1;G.phase='lobby';pubState();lobby()">Retour au lobby</button><button class="s" onclick="plk().forEach(k=>G.pl[k].ans={});G.i=-1;G.phase='lobby';pubState();lobby()">Rejouer (mêmes participants)</button><button class="s" onclick="exportCSV()">Exporter .csv</button></div>`}
+  <div class="row"><button class="s" onclick="G.i=-1;G.phase='lobby';pubState();lobby()">Retour au lobby</button><button class="s" onclick="replay()">Rejouer (mêmes participants)</button><button class="s" onclick="exportCSV()">Exporter .csv</button></div>`}
 function exportCSV(){const n=G.set.qs.length,r=rank();const t='Participant;'+G.set.qs.map((_,i)=>'Q'+(i+1)).join(';')+';Score\n'+r.map(x=>[x.nom].concat(G.set.qs.map((q,i)=>{const a=G.pl[x.k].ans[i];return a==null?'-':q.ok<0?'sondage':a===q.ok?'juste':'faux'})).concat([x.s+'/'+n]).join(';')).join('\n');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+t],{type:'text/csv'}));a.download='24_resultats_'+G.k+'.csv';a.click()}
 addEventListener('keydown',e=>{if(/INPUT|TEXTAREA|SELECT/.test((e.target.tagName||'')))return;
@@ -209,14 +220,15 @@ function join(code){
   const e=$('#nom');if(e)e.focus()}
 function go(code){
   const nom=$('#nom').value.trim();if(!nom)return;lsSet('qz_nom',nom);
-  S={nom,code,key:norm(nom),st:null,ans:lsGet('qz_ans_'+code+'_'+norm(nom),{}),conf:{}};
+  S={nom,code,key:norm(nom),sk:'',st:null,ans:{},conf:{}};
   A.innerHTML='<p>Connexion…</p>';
   C=Bus('blc-'+code,()=>{drawBar();if(S.st)render()});
   C.sub('qz'+code+'h',onState);C.sub('qz'+code+'p',onPers);C.onup.push(sendHello);C.open();drawBar();
   setTimeout(()=>{if(!C.up&&!S.sent)sendHello()},3000);if(MOCK)sendHello()}
 function sendHello(){S.sent=1;C.pub('qz'+S.code+'u',{t:'hello',nom:S.nom,dev:isTel()?'tel':'pc'})}
-function onPers(m){if(m&&m.t==='mine'&&m.k===S.key){Object.keys(m.ans||{}).forEach(i=>{S.conf[i]=true;if(S.ans[i]==null)S.ans[i]=m.ans[i]});lsSet('qz_ans_'+S.code+'_'+S.key,S.ans);if(S.st)render()}}
-function onState(s){if(!s||(S.st&&s.v<S.st.v))return;const nq=!S.st||S.st.i!==s.i;S.st=s;if(nq)S.sent=1;render()}
+function ansKey(){return 'qz_ans_'+S.code+'_'+S.key+'_'+(S.sk||'')}
+function onPers(m){if(m&&m.t==='mine'&&m.k===S.key&&(!m.s||m.s===S.sk)){Object.keys(m.ans||{}).forEach(i=>{S.conf[i]=true;if(S.ans[i]==null)S.ans[i]=m.ans[i]});lsSet(ansKey(),S.ans);if(S.st)render()}}
+function onState(s){if(!s||(S.st&&s.v<S.st.v))return;if((s.k||'')!==S.sk){S.sk=s.k||'';S.ans=lsGet(ansKey(),{});S.conf={}}const nq=!S.st||S.st.i!==s.i;S.st=s;if(nq)S.sent=1;render()}
 function st(h){A.innerHTML=`<div class="row" style="justify-content:space-between"><b>${esc(S.nom)}</b><span class="chip">code ${esc(S.code)}</span></div>`+h}
 function render(){const s=S.st;if(!s)return st('<div class="card"><h2>Connexion en cours…</h2><p>En attente de l’animateur.</p></div>');
   if(s.ph==='lobby')return st('<div class="card"><h2>✓ Connecté</h2><p>Attendez la première question…</p></div>');
@@ -229,8 +241,8 @@ function qView(){const q=S.st,sel=S.ans[q.i];
   st(`<div class="pb"><i style="width:${100*(q.i+1)/q.n}%"></i></div><div style="color:var(--m)">Question ${q.i+1} / ${q.n} · touches A à ${L[q.o.length-1]} du clavier</div><div class="q" style="font-size:24px">${esc(q.q)}</div>`+
   q.o.map((o,k)=>`<button class="opt ${sel===k?'sel':''}" onclick="pick(${k})"><div class="lt">${L[k]}</div><div class="tx">${sel===k?'● ':''}${esc(o)}</div></button>`).join('')+
   (q.ind?`<div class="hint"><b>Indice</b> : ${esc(q.ind)}</div>`:'')+(sel!=null?`<p style="color:var(--m)">${S.conf[q.i]?'✓ Réponse reçue par l’animateur.':'… Envoi en cours.'} Vous pouvez la changer jusqu’à la correction.</p>`:''))}
-function pick(k){const i=S.st.i;S.ans[i]=k;S.conf[i]=false;lsSet('qz_ans_'+S.code+'_'+S.key,S.ans);send(i,k);qView();
+function pick(k){const i=S.st.i;S.ans[i]=k;S.conf[i]=false;lsSet(ansKey(),S.ans);send(i,k);qView();
   setTimeout(()=>{if(!S.conf[i]&&S.st&&S.st.i===i&&S.st.ph==='ask')send(i,S.ans[i])},4000)}
-function send(i,a){C.pub('qz'+S.code+'u',{t:'ans',nom:S.nom,q:i,a,dev:isTel()?'tel':'pc'})}
+function send(i,a){C.pub('qz'+S.code+'u',{t:'ans',nom:S.nom,s:S.sk,q:i,a,dev:isTel()?'tel':'pc'})}
 home();rpBus();setTimeout(flushReports,3000);
 </script></body></html>
